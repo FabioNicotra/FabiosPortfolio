@@ -1,6 +1,6 @@
 # Fabio's Portfolio
 
-## [A silly genetic algorithm](https://github.com/FabioNicotra/FabiosPortfolio/blob/main/01_GeneticAlgorithm/GeneticAlgorithm.ipynb)
+## [A simple genetic algorithm](https://github.com/FabioNicotra/FabiosPortfolio/blob/main/01_GeneticAlgorithm/GeneticAlgorithm.ipynb)
 
 The project was originally assigned during the course Data Structures in Python held by Politecnico di Torino in cooperation with Reply IT.
 This notebook presents two distinct implementations of a genetic algorithm. The first implementation utilizes simple functions to handle a list of floats, where each float represents the fitness of an individual.
