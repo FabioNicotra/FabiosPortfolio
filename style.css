@@ -1,6 +1,4 @@
-h1,
-h2,
-p {
+body {
   font-family: sans-serif;
   color: #444;
 }
@@ -8,7 +6,7 @@ p {
 h1,
 h2,
 h3 {
-  color: #1098ad;
+  color: #405f8d;
 }
 
 h1 {
@@ -17,7 +15,7 @@ h1 {
 
 /* Styling links */
 a:link {
-  color: #1098ad;
+  color: #405f8d;
   text-decoration: none;
 }
 
