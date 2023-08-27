@@ -13,6 +13,11 @@ h1 {
   font-size: 26px;
 }
 
+header {
+  color: white;
+  background: #405f8d;
+  }
+  
 /* Styling links */
 a:link {
   color: #405f8d;
