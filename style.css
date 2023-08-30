@@ -1,15 +1,30 @@
+/*
+SPACING SYSTEM (px)
+2 / 4 / 8 / 12 / 16 / 24 / 32 / 48 / 64 / 80 / 96 / 128
+
+FONT SIZE SYSTEM (px)
+10 / 12 / 14 / 16 / 18 / 20 / 24 / 30 / 36 / 44 / 52 / 62 / 74 / 86 / 98
+
+COLORS: 
+#405f8d
+#dfe4ec
+#444
+*/
+
 * {
   padding: 0;
   margin: 0;
+  box-sizing: border-box;
 }
 
 body {
-  font-family: sans-serif;
+  /* font-family: sans-serif; */
+  font: Georgia;
   color: #444;
 }
 
 .container {
-  width: 800px;
+  width: 75%;
   margin: 0 auto;
 }
 
@@ -17,15 +32,30 @@ body {
   background-color: #405f8d;
   padding: 20px 40px;
   margin-bottom: 60px;
+  /* height: 100%; */
+  /* display: flex; */
 }
 
 .title {
-  color: white;
+  color: #dfe4ec;
   margin: auto;
 }
 
-article {
-  margin-bottom: 60px;
+.header-img {
+  /* height: 100%; */
+  display: none;
+  /* background-size: cover; */
+}
+
+section {
+  margin-bottom: 128px;
+  /* text-align: justify; */
+}
+
+article img {
+  width: 80%;
+  /* display: block;
+  text-align: center; */
 }
 
 h1,
@@ -35,12 +65,17 @@ h3 {
 }
 
 h1 {
-  font-size: 26px;
+  font-size: 64px;
+  letter-spacing: -1.5px;
 }
 
 h2 {
-  font-size: 30px;
+  font-size: 48px;
   margin-bottom: 30px;
+}
+
+p {
+  font-size: 18px;
 }
 
 /* Styling links */
