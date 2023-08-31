@@ -52,20 +52,23 @@ body {
   gap: 128px;
 }
 
-section {
+.project {
   padding: 24px;
   /* text-align: justify; */
   box-shadow: 0 20px 30px 0 rgba(0, 0, 0, 0.1);
   border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .project-description {
   line-height: 1.5;
 }
-section img {
+.project img {
   width: 80%;
-  /* display: block;
-  text-align: center; */
+  padding: auto;
+  align-self: center;
 }
 
 h1,
