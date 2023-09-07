@@ -24,6 +24,26 @@ body {
   border-bottom: solid 16px #405f8d;
 }
 
+h1,
+h2,
+h3 {
+  color: #405f8d;
+}
+
+h1 {
+  font-size: 64px;
+  letter-spacing: -1.5px;
+}
+
+h2 {
+  font-size: 48px;
+  margin-bottom: 30px;
+}
+
+p {
+  font-size: 18px;
+}
+
 .main-header {
   background-color: #405f8d;
   padding: 20px 40px;
@@ -53,52 +73,73 @@ body {
 }
 
 .project {
-  padding: 24px;
+  padding: 48px;
   /* text-align: justify; */
   box-shadow: 0 20px 30px 0 rgba(0, 0, 0, 0.1);
   border-radius: 24px;
   display: flex;
-  flex-direction: column;
+
+  gap: 32px;
+}
+
+.hero-project {
+  padding: 48px;
+  box-shadow: 0 20px 30px 0 rgba(0, 0, 0, 0.1);
+  border-radius: 24px;
+}
+
+.hero-project .btn-container {
+  margin-bottom: 12px;
+}
+
+.project-dash {
+  width: 80%;
+  display: block;
+  margin: 0 auto;
+}
+
+.btn-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
   gap: 24px;
+}
+
+.info-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .project-description {
   line-height: 1.5;
 }
 .project-img {
-  width: 80%;
+  max-width: 50%;
   padding: auto;
   align-self: center;
 }
 
-h1,
-h2,
-h3 {
-  color: #405f8d;
+.btn-project:link,
+.btn-project:visited {
+  padding: 3px 6px;
+  color: #495057;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
 }
 
-h1 {
-  font-size: 64px;
-  letter-spacing: -1.5px;
+.btn-project:hover,
+.btn-project:active {
+  background-color: #e7ebf1;
+  transition: all 0.4s;
 }
 
-h2 {
-  font-size: 48px;
-  margin-bottom: 30px;
-}
-
-p {
-  font-size: 18px;
-}
-
-/* Styling links */
-a:link,
-a:visited {
-  color: #405f8d;
-  text-decoration: none;
-}
-
-a:hover,
-a:active {
-  color: #1098ad;
+.icon {
+  height: 32px;
+  width: 32px;
 }
