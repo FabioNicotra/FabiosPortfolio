@@ -62,6 +62,13 @@ body {
   gap: 24px;
 }
 
+.info-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 48px;
+}
+
 .project-description {
   line-height: 1.5;
 }
@@ -69,6 +76,23 @@ body {
   width: 80%;
   padding: auto;
   align-self: center;
+}
+
+.btn-project {
+  background-color: #e7ebf1;
+}
+.btn-project:link,
+.btn-project:visited {
+  background-color: #aaa;
+}
+
+.btn-project:hover,
+.btn-project:active {
+  background-color: #e7ebf1;
+}
+
+.icon {
+  height: 36px;
 }
 
 h1,
@@ -94,7 +118,6 @@ p {
 /* Styling links */
 a:link,
 a:visited {
-  color: #405f8d;
   text-decoration: none;
 }
 
