@@ -16,42 +16,71 @@
       />
     </header>
     <div class="projects-container">
-      <section class="project">
+      <section class="hero-project">
         <h2>
-          <a
-            href="https://github.com/FabioNicotra/fabionicotra.github.io/blob/main/04_PortfolioSimulation/PortfolioSimulation.ipynb"
-            target="_blank"
-          >
-            Modern Portfolio Theory: comparison of expected and realized
-            performances
-          </a>
+          Modern Portfolio Theory: comparison of expected and realized
+          performances
         </h2>
+        <div class="btn-container">
+          <a
+            class="btn-project"
+            target="_blank"
+            href="https://colab.research.google.com/github/FabioNicotra/fabionicotra.github.io/blob/main/04_PortfolioSimulation/PortfolioSimulation.ipynb"
+          >
+            <img class="icon colab-icon" src="google-colab.svg" />
+          </a>
+          <a
+            class="btn-project"
+            target="_blank"
+            href="https://github.com/FabioNicotra/fabionicotra.github.io/blob/main/04_PortfolioSimulation/PortfolioSimulation.ipynb"
+          >
+            <img class="icon github-icon" src="github-mark.svg" />
+          </a>
+        </div>
         <p class="project-description">
           The aim of the present project is to compare the expected returns of
           different portfolios, assessed using Modern Portfolio Theory, with
           their realized performance. The analysis focuses on 5 of the major
           Italian stocks. Historical data from 2011 to 2020 is utilized to
-          determine expected returns and volatility. Successively, portfolios
-          are constructed at the beginning of 2021, using prior knowledge to
-          forecast their performances. Finally, historical data from 2021 to the
-          present day is used to benchmark the results of the analysis.
+          determine expected returns and volatility. Successively, different
+          portfolios are constructed at the beginning of 2021, using prior
+          knowledge to forecast their performances. Finally, historical data
+          from 2021 to the present day is used to benchmark the results of the
+          analysis.
         </p>
         <iframe
           src="04_PortfolioSimulation/markowitz.html"
           frameborder="0"
           height="650px"
-          class="project-img"
+          class="project-dash"
         ></iframe>
       </section>
+
       <section id="genetic-algorithm" class="project">
-        <h2>
-          <a
-            href="https://github.com/FabioNicotra/FabiosPortfolio/blob/main/01_GeneticAlgorithm/GeneticAlgorithm.ipynb"
-            target="_blank"
-            >A simple genetic algorithm
-          </a>
-        </h2>
+        <img
+          src="https://github.com/FabioNicotra/FabiosPortfolio/blob/01d3e66763e41622857254d9ea9fdf07364bb109/01_GeneticAlgorithm/FitnessVsIter.png?raw=true"
+          class="project-img"
+          alt="Fitness over generations"
+        />
+
         <div class="info-container">
+          <h2>A simple genetic algorithm</h2>
+          <div class="btn-container">
+            <a
+              class="btn-project"
+              target="_blank"
+              href="https://colab.research.google.com/github/FabioNicotra/fabionicotra.github.io/blob/main/01_GeneticAlgorithm/GeneticAlgorithm.ipynb"
+            >
+              <img class="icon colab-icon" src="google-colab.svg" />
+            </a>
+            <a
+              class="btn-project"
+              target="_blank"
+              href="https://github.com/FabioNicotra/FabiosPortfolio/blob/main/01_GeneticAlgorithm/GeneticAlgorithm.ipynb"
+            >
+              <img class="icon github-icon" src="github-mark.svg" />
+            </a>
+          </div>
           <p class="project-description">
             The project was originally assigned during the course Data
             Structures in Python held by Politecnico di Torino in cooperation
@@ -67,35 +96,29 @@
             object-oriented approach offers improved modularity, reusability,
             and ease of implementation.
           </p>
-          <img
-            src="https://github.com/FabioNicotra/FabiosPortfolio/blob/01d3e66763e41622857254d9ea9fdf07364bb109/01_GeneticAlgorithm/FitnessVsIter.png?raw=true"
-            class="project-img"
-          />
         </div>
       </section>
 
       <section id="mobile-price" class="project">
-        <h2>Mobile price classification</h2>
-
-        <div class="btn-project">
-          <a
-            target="_blank"
-            href="https://colab.research.google.com/github/FabioNicotra/fabionicotra.github.io/blob/main/04_PortfolioSimulation/PortfolioSimulation.ipynb"
-          >
-            <img class="icon colab-icon" src="google-colab.svg" />
-            <p>Open in Colab</p>
-          </a>
-        </div>
-        <button class="btn-project">
-          <a
-            target="_blank"
-            href="https://github.com/FabioNicotra/fabionicotra.github.io/blob/9e7a09d97afb2094ad230b16014109d1a2d0ce27/02_MobileClassification/MobileClassification.ipynb"
-          >
-            <img class="icon github-icon" src="github-mark.svg" />
-            <p>Open in GitHub</p>
-          </a>
-        </button>
         <div class="info-container">
+          <h2>Mobile price classification</h2>
+          <div class="btn-container">
+            <a
+              class="btn-project"
+              target="_blank"
+              href="https://colab.research.google.com/github/FabioNicotra/fabionicotra.github.io/blob/main/02_MobileClassification/MobileClassification.ipynb"
+            >
+              <img class="icon colab-icon" src="google-colab.svg" />
+            </a>
+            <a
+              class="btn-project"
+              target="_blank"
+              href="https://github.com/FabioNicotra/fabionicotra.github.io/blob/main/02_MobileClassification/MobileClassification.ipynb"
+            >
+              <img class="icon github-icon" src="github-mark.svg" />
+            </a>
+          </div>
+
           <p class="project-description">
             The project was originally assigned during the course Data
             Structures in Python held by Politecnico di Torino in cooperation
@@ -109,12 +132,12 @@
             classification models aim to provide insights into how different
             device characteristics contribute to determining the price.
           </p>
-          <img
-            src="https://github.com/FabioNicotra/fabionicotra.github.io/blob/9e7a09d97afb2094ad230b16014109d1a2d0ce27/02_MobileClassification/ConfusionMatrixSVC.png?raw=true"
-            class="project-img"
-            alt="Confusion matrix"
-          />
         </div>
+        <img
+          src="https://github.com/FabioNicotra/fabionicotra.github.io/blob/9e7a09d97afb2094ad230b16014109d1a2d0ce27/02_MobileClassification/ConfusionMatrixSVC.png?raw=true"
+          class="project-img"
+          alt="Confusion matrix"
+        />
       </section>
     </div>
   </body>
