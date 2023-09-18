@@ -1,0 +1,164 @@
+/**********************************/
+/********* BANNER SECTION *********/
+/**********************************/
+
+.section-banner {
+  /* Padding only on the sides */
+  padding: 0 9.6rem;
+
+  /* Full page design */
+  height: 100vh;
+  background-image: linear-gradient(
+      to right,
+      rgba(64, 95, 141, 1) 25%,
+      rgba(64, 95, 141, 0.66) 75%
+    ),
+    url(../img/banner.jpg);
+  background-size: cover;
+  background-position: center;
+}
+
+.banner {
+  padding-top: 25vh;
+  /* display: grid; */
+  /* grid-template-columns: repeat(2, 1fr); */
+  align-items: center;
+}
+
+.qualification {
+  font-size: 6.2rem;
+  color: #e7ebf1;
+}
+
+.banner-text-box {
+  max-width: 120rem;
+  margin-bottom: 4.8rem;
+}
+
+/**********************************/
+/************ Projects ************/
+/**********************************/
+
+/* Section containing all the projects */
+.section-projects {
+  margin: 0 auto;
+  margin-top: 12.8rem;
+  margin-bottom: 6.4rem;
+  max-width: 120rem;
+}
+
+/* Style the card displaying the project */
+.project-container {
+  padding: 4.8rem;
+  border-radius: 24px;
+  box-shadow: 0 20px 30px 0 rgba(0, 0, 0, 0.1);
+}
+
+.grid--project-hero {
+  grid-template-columns: 1fr;
+  /* grid-template-rows: 1fr 1fr; */
+  justify-content: center;
+  align-items: center;
+  row-gap: 2.4rem;
+}
+
+.grid--project-hero .project-description {
+  grid-row: 2;
+}
+
+/* No idea about how it works */
+.wrapper {
+  position: relative;
+  overflow: hidden;
+  padding-top: 56.25%;
+}
+
+.project-plot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.grid--project {
+  grid-template-columns: repeat(2, 1fr);
+  justify-content: center;
+  align-items: center;
+  row-gap: 2.4rem;
+}
+.project-main {
+  grid-column: 1;
+}
+
+.project-description {
+  font-size: 1.8rem;
+  line-height: 1.5;
+}
+
+.project-img {
+  max-width: 100%;
+  align-self: center;
+}
+
+.project-container:nth-child(3) .project-main {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+/* .project-container:nth-child(3) .project-main {
+  grid-column: 2;
+} */
+
+/**********************************/
+/************* Footer *************/
+/**********************************/
+
+.footer {
+  background-color: #405f8d;
+  padding: 6.4rem;
+  color: #e7ebf1;
+}
+
+.footer-heading {
+  font-size: 2rem;
+  font-weight: 500;
+  margin-bottom: 2.4rem;
+}
+
+.contacts {
+  font-style: normal;
+  font-size: 1.8rem;
+  line-height: 1.6;
+  margin-bottom: 1.6rem;
+}
+
+.social-links {
+  list-style: none;
+  display: flex;
+  gap: 2.4rem;
+  margin-bottom: 3.2rem;
+}
+
+.social-icon {
+  height: 3.6rem;
+  width: 3.6rem;
+  transition: all 0.3s;
+}
+
+.social-icon:hover {
+  transform: scale(120%);
+}
+
+.footer-link:link,
+.footer-link:visited {
+  text-decoration: none;
+  font-size: 1.6rem;
+  color: #e7ebf1;
+  transition: all 0.3s;
+}
+
+.footer-link:hover,
+.footer-link:active {
+  color: #fff;
+}
