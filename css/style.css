@@ -1,136 +1,164 @@
 /**********************************/
-/********** HERO SECTION **********/
+/********* BANNER SECTION *********/
 /**********************************/
 
-.section-hero {
-  background-color: #405f8d;
+.section-banner {
+  /* Padding only on the sides */
+  padding: 0 9.6rem;
 
-  padding: 4.8rem 0 9.6rem 0;
+  /* Full page design */
   height: 100vh;
-  display: grid;
+  background-image: linear-gradient(
+      to right,
+      rgba(64, 95, 141, 1) 25%,
+      rgba(64, 95, 141, 0.66) 75%
+    ),
+    url(../img/banner.jpg);
+  background-size: cover;
+  background-position: center;
 }
 
-.hero {
-  max-width: 130rem;
-  margin: 0 auto;
-  padding: 0 3.2rem;
-  display: grid;
-  grid-template-columns: 2fr 1fr;
+.banner {
+  padding-top: 25vh;
+  /* display: grid; */
+  /* grid-template-columns: repeat(2, 1fr); */
   align-items: center;
 }
 
-.hero-lorem {
+.qualification {
+  font-size: 6.2rem;
   color: #e7ebf1;
 }
 
-.intro {
-  font-size: 4.4rem;
-  color: #e7ebf1;
-}
-.heading-primary {
-  color: #fff;
-}
-
-.main-header {
-  background-color: #405f8d;
-  padding: 20px 40px;
-  margin-bottom: 60px;
-  height: 100vh;
-}
-
-.header-img {
-  /* height: 100%; */
-  display: none;
-  /* background-size: cover; */
+.banner-text-box {
+  max-width: 120rem;
+  margin-bottom: 4.8rem;
 }
 
 /**********************************/
 /************ Projects ************/
 /**********************************/
 
-.projects-container {
-  width: 75vw;
+/* Section containing all the projects */
+.section-projects {
   margin: 0 auto;
   margin-top: 12.8rem;
-  margin-bottom: 64px;
-  display: flex;
-  flex-direction: column;
-  gap: 128px;
+  margin-bottom: 6.4rem;
+  max-width: 120rem;
 }
 
-.project {
-  padding: 48px;
-  /* text-align: justify; */
-  box-shadow: 0 20px 30px 0 rgba(0, 0, 0, 0.1);
+/* Style the card displaying the project */
+.project-container {
+  padding: 4.8rem;
   border-radius: 24px;
-  display: flex;
-
-  gap: 32px;
-}
-
-.hero-project {
-  padding: 48px;
   box-shadow: 0 20px 30px 0 rgba(0, 0, 0, 0.1);
-  border-radius: 24px;
 }
 
-.hero-project .btn-container {
-  margin-bottom: 12px;
-}
-
-.project-dash {
-  width: 80%;
-  display: block;
-  margin: 0 auto;
-}
-
-.btn-container {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 24px;
-}
-
-.info-container {
-  display: flex;
-  flex-direction: column;
+.grid--project-hero {
+  grid-template-columns: 1fr;
+  /* grid-template-rows: 1fr 1fr; */
   justify-content: center;
-  align-items: flex-start;
-  gap: 12px;
+  align-items: center;
+  row-gap: 2.4rem;
+}
+
+.grid--project-hero .project-description {
+  grid-row: 2;
+}
+
+/* No idea about how it works */
+.wrapper {
+  position: relative;
+  overflow: hidden;
+  padding-top: 56.25%;
+}
+
+.project-plot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.grid--project {
+  grid-template-columns: repeat(2, 1fr);
+  justify-content: center;
+  align-items: center;
+  row-gap: 2.4rem;
 }
 
 .project-description {
+  grid-row: 2;
+  font-size: 1.8rem;
   line-height: 1.5;
-  font-size: 1.6rem;
+  /* grid-column: span 2; */
 }
+
 .project-img {
-  max-width: 50%;
-  padding: auto;
+  max-width: 100%;
   align-self: center;
 }
 
-.btn-project:link,
-.btn-project:visited {
-  padding: 3px 6px;
-  color: #495057;
-  border-radius: 12px;
+.project-container:nth-child(3) .project-img {
+  grid-column: 1;
+}
+.project-container:nth-child(3) .btn-container {
+  grid-column: 2;
+}
+.project-container:nth-child(3) .project-description {
+  grid-column: 2;
+}
+
+/**********************************/
+/************* Footer *************/
+/**********************************/
+
+.footer {
+  background-color: #405f8d;
+  padding: 6.4rem;
+  color: #e7ebf1;
+}
+
+.footer-heading {
+  font-size: 2rem;
+  font-weight: 500;
+  margin-bottom: 2.4rem;
+}
+
+.contacts {
+  font-style: normal;
+  font-size: 1.8rem;
+  line-height: 1.6;
+  margin-bottom: 1.6rem;
+}
+
+.social-links {
+  list-style: none;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
+  gap: 2.4rem;
+  margin-bottom: 3.2rem;
 }
 
-.btn-project:hover,
-.btn-project:active {
-  background-color: #e7ebf1;
-  transition: all 0.4s;
+.social-icon {
+  height: 3.6rem;
+  width: 3.6rem;
+  transition: all 0.3s;
 }
 
-.icon {
-  height: 42px;
-  width: 42px;
+.social-icon:hover {
+  transform: scale(120%);
 }
 
-.github-icon {
-  padding: 6px;
+.footer-link:link,
+.footer-link:visited {
+  text-decoration: none;
+  font-size: 1.6rem;
+  color: #e7ebf1;
+  transition: all 0.3s;
+}
+
+.footer-link:hover,
+.footer-link:active {
+  color: #fff;
 }
