@@ -87,12 +87,13 @@
   align-items: center;
   row-gap: 2.4rem;
 }
+.project-main {
+  grid-column: 1;
+}
 
 .project-description {
-  grid-row: 2;
   font-size: 1.8rem;
   line-height: 1.5;
-  /* grid-column: span 2; */
 }
 
 .project-img {
@@ -100,15 +101,14 @@
   align-self: center;
 }
 
-.project-container:nth-child(3) .project-img {
-  grid-column: 1;
-}
-.project-container:nth-child(3) .btn-container {
+.project-container:nth-child(3) .project-main {
   grid-column: 2;
+  grid-row: 1;
 }
-.project-container:nth-child(3) .project-description {
+
+/* .project-container:nth-child(3) .project-main {
   grid-column: 2;
-}
+} */
 
 /**********************************/
 /************* Footer *************/
