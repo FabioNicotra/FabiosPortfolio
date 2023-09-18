@@ -9,15 +9,25 @@ Default: 400
 
 - Line heights
 Default: 1
+Small: 1.05
+Medium: 1.2
+Paragraph default: 1.6
+Large: 1.8
 
 
 --- 02 COLORS
-- Primary: #405f8d
-
+- Primary: --lapis-lazuli: #405f8dff;
 - Tints: #E7EBF1
-- Shades: 
+- Shades: #3a567f
 - Accents:
 - Greys: #444
+
+--vivid-sky-blue: #2dc7ffff;
+- Tints: 
+- Shades: #249fcc
+--wheat: #ead2acff;
+--earth-yellow: #eaba6bff;
+--bright-pink-crayola: #ea526fff;
 
 --- 05 SHADOWS
 
@@ -30,6 +40,13 @@ Default: 1
 
 
 */
+:root {
+  --lapis-lazuli: #405f8dff;
+  --light-sky-blue: #66c7f4ff;
+  --light-coral: #ef767aff;
+  --sunset: #f2c57cff;
+  --cambridge-blue: #7fb685ff;
+}
 
 * {
   padding: 0;
@@ -69,7 +86,8 @@ body {
 }
 
 .heading-primary {
-  font-size: 5.2rem;
+  font-size: 8.6rem;
+  color: #fff;
   line-height: 1.05;
   margin-bottom: 3.2rem;
 }
@@ -77,4 +95,100 @@ body {
 .heading-secondary {
   font-size: 4.4rem;
   line-height: 1.2;
+  margin-bottom: 4.8rem;
+}
+
+.grid {
+  display: grid;
+  gap: 4.8rem;
+}
+
+.btn-container {
+  display: grid;
+  justify-content: start;
+  align-items: center;
+  grid-template-columns: repeat(2, 1fr);
+  margin-left: 0;
+  margin-right: auto;
+  /* flex-grow: 0; */
+}
+
+.btn,
+.btn:link,
+.btn:visited {
+  display: inline-block;
+
+  text-decoration: none;
+  font-size: 2rem;
+  font-weight: 600;
+  padding: 1.6rem 3.2rem;
+  border-radius: 9px;
+
+  /* Only necessary for .btn */
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+
+  /* Put transition on original "state" */
+  /* transition: background-color 0.3s; */
+  transition: all 0.3s;
+}
+
+.btn--full:link,
+.btn--full:visited {
+  background-color: var(--light-sky-blue);
+  color: #125066;
+}
+
+.btn--full:hover,
+.btn--full:active {
+  background-color: #29b3e6;
+}
+
+.btn--outline:link,
+.btn--outline:visited {
+  background-color: #fff;
+  color: #555;
+}
+
+.btn--outline:hover,
+.btn--outline:active {
+  background-color: #e7ebf1;
+
+  /* border: 3px solid #fff; */
+
+  /* Trick to add border inside
+  box-shadow: inset 0 0 0 3px #fff; */
+}
+
+.btn-project:link,
+.btn-project:visited {
+  padding: 3px 6px;
+  color: #495057;
+  border-radius: 12px;
+  display: inline-block;
+  /* justify-content: center; */
+  /* align-items: center; */
+  /* gap: 6px; */
+  transition: all 0.4s;
+}
+
+.btn-project:hover,
+.btn-project:active {
+  /* background-color: #e7ebf1; */
+  transform: scale(120%);
+}
+
+.icon {
+  height: 42px;
+  width: 42px;
+}
+
+.github-icon {
+  padding: 6px;
+}
+
+/* HELPER/SETTINGS CLASSES */
+.margin-right-sm {
+  margin-right: 1.6rem !important;
 }
