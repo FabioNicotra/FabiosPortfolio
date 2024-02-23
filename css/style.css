@@ -99,6 +99,7 @@
 .project-img {
   max-width: 100%;
   align-self: center;
+  justify-self: center;
 }
 
 .project-container:nth-child(3) .project-main {
