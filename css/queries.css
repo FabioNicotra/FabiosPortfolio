@@ -1,0 +1,50 @@
+/* rem and em do NOT depend on html font-size in media queries! Instead, 1rem = 1em = 16px */
+
+/**************************/
+/* BELOW 1200px (Smaller desktops) */
+/**************************/
+
+@media (max-width: 75em) {
+  .section-banner {
+    max-width: 120rem;
+  }
+
+  .grid--project {
+    grid-template-columns: 1fr;
+    justify-content: center;
+    align-items: center;
+    row-gap: 2.4rem;
+  }
+
+  .project-container:nth-child(3) .project-main {
+    grid-column: 1;
+    grid-row: 1;
+  }
+}
+
+/**************************/
+
+@media (max-width: 52em) {
+  .html {
+    font-size: 10%;
+  }
+
+  .section-banner {
+    padding: 0 3.2rem;
+  }
+}
+
+@media (max-width: 42.5em) {
+  .heading-primary {
+    font-size: 6.8rem;
+    margin-bottom: 2.4rem;
+  }
+
+  .qualification {
+    font-size: 3.6rem;
+  }
+
+  .btn--full {
+    margin-bottom: 1.6rem;
+  }
+}
