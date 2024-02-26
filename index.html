@@ -22,7 +22,7 @@
 
           <div class="">
             <a href="#portfolio" class="btn btn--full margin-right-sm"
-              >Portfolio</a
+              >Projects</a
             >
             <a href="#contacts" class="btn btn--outline">Contacts</a>
           </div>
@@ -32,8 +32,7 @@
         <div class="container grid">
           <article class="project-container">
             <h2 class="heading-secondary">
-              Modern Portfolio Theory: comparison of expected and realized
-              performances
+              Portfolio selection and performance insight with Dash
             </h2>
 
             <div class="grid grid--project-hero">
@@ -54,23 +53,18 @@
                 </a>
               </div>
               <p class="project-description">
-                The aim of the present project is to compare the expected
-                returns of different portfolios, assessed using Modern Portfolio
-                Theory, with their realized performance. The analysis focuses on
-                5 of the major Italian stocks. Historical data from 2011 to 2020
-                is utilized to determine expected returns and volatility.
-                Successively, different portfolios are constructed at the
-                beginning of 2021, using prior knowledge to forecast their
-                performances. Finally, historical data from 2021 to the present
-                day is used to benchmark the results of the analysis.
+                The dashboard allows the user to select a list of stocks from
+                FTSEMIB index and to simulate the performance of a static
+                portfolio constructed with the selected stocks. The user can
+                select the time frame of the analysis and the date when the
+                portfolio is constructed. The dashboard provides insights about
+                the performance of different allocations on historical data.
               </p>
-              <centre class="wrapper">
-                <iframe
-                  src="04_PortfolioSimulation/markowitz.html"
-                  frameborder="0"
-                  class="project-plot"
-                ></iframe>
-              </centre>
+
+              <iframe
+                src="https://portfolio-dash-555d5b8b7bfa.herokuapp.com"
+                allowfullscreen
+              ></iframe>
             </div>
           </article>
 

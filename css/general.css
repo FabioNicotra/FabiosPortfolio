@@ -67,6 +67,12 @@ body {
   color: #444;
 }
 
+iframe {
+  width: 100rem;
+  height: 56.25rem;
+  border: none;
+}
+
 /**********************************/
 /******* GENERAL COMPONENTS *******/
 /**********************************/
