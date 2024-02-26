@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import datetime as dt
 
-import matplotlib.pyplot as plt
 import plotly.express as px
 
 import yfinance as yf
@@ -300,6 +299,3 @@ def plot_portfolio(data, mcPortfolios, clickData, hoverData, initial_investment,
     fig.update_yaxes(range=ylims).update_layout(showlegend=False, transition_duration=10, title='Portfolio value')
     
     return fig
-
-if __name__ == '__main__':
-    app.run_server()
