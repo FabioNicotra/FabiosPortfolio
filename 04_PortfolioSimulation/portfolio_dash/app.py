@@ -48,10 +48,9 @@ def evaluate_portfolio(mc_portfolios, index, data, initialValue):
     return portfolio_value
 
 def evaluate_asset(tickers, index, data, initialValue):
-    returns = data.pct_change().dropna()
-    ticker = tickers[index]
-    nShares = initialValue/data.iloc[0][ticker]
-    asset_value = nShares*data[ticker]
+    asset = data.iloc[:, index] if len(tickers) > 1 else data
+    nShares = initialValue/asset.iloc[0]
+    asset_value = nShares*asset
     return asset_value
 
 # Get a list of symbols from FTSEMIB index
@@ -98,7 +97,7 @@ app.layout = html.Div([
                                     min_date_allowed=dt.date(2010, 1, 1),
                                     max_date_allowed=dt.date.today(),
                                     initial_visible_month=dt.date.today(),
-                                    start_date=dt.date(2010, 1, 1),
+                                    start_date=dt.date.today() - dt.timedelta(days=2*365),
                                     end_date=dt.date.today(),
                                     className='dbc'
                                 ),
@@ -154,7 +153,15 @@ app.layout = html.Div([
                             dcc.Graph(id='portfolio-value',
                                     )
                         ], width=5),
-                    ])
+                    ]),
+        #             html.Div([
+        #     dcc.Markdown("""
+        #         **Hover Data**
+
+        #         Mouse over values in the graph.
+        #     """),
+        #     html.Pre(id='hover-data',)
+        # ],),
                 ]
             ),
             dcc.Tab(
@@ -190,6 +197,8 @@ def select_assets(tickers, start_date, end_date, backtest_start_date):
     start_date = dt.datetime.strptime(start_date, '%Y-%m-%d')
     end_date = dt.datetime.strptime(end_date, '%Y-%m-%d')
     backtest_start_date = dt.datetime.strptime(backtest_start_date, '%Y-%m-%d')
+    # Sort tickers in alphabetical order
+    tickers = sorted(tickers)
     
     try:
         data = yf.download(tickers, start=start_date, end=end_date, )['Adj Close']
@@ -226,6 +235,11 @@ def mc_allocation(data, n_portfolios, analysis_start_date, analysis_end_date, n_
         raise PreventUpdate
 
     data = pd.read_json(data)
+
+    # Check if only one asset is selected by checking if data is a Series
+    if isinstance(data, pd.Series):
+        raise PreventUpdate
+    
     analysis_returns = data[analysis_start_date:analysis_end_date].pct_change().dropna()
 
     if analysis_returns.empty:
@@ -255,7 +269,8 @@ def mc_allocation(data, n_portfolios, analysis_start_date, analysis_end_date, n_
 
 @app.callback(
     Output('portfolio-value', 'figure'),
-    [Input('store-data', 'data'),
+    [Input('ticker-dropdown', 'value'),
+    Input('store-data', 'data'),
     Input('store-portfolios', 'data'),
     Input('mc-portfolios', 'clickData'),
     Input('mc-portfolios', 'hoverData'),
@@ -263,39 +278,65 @@ def mc_allocation(data, n_portfolios, analysis_start_date, analysis_end_date, n_
     Input('backtest-start-date', 'date'),
     Input('analysis-date-picker', 'end_date'),],
 )
-def plot_portfolio(data, mcPortfolios, clickData, hoverData, initial_investment, start_date, end_date):
+def plot_portfolio(tickers, data, mcPortfolios, clickData, hoverData, initial_investment, start_date, end_date):
     if not clickData and not hoverData:
         raise PreventUpdate
-
-
-    mcPortfolios = pd.read_json(mcPortfolios)
-    data = pd.read_json(data)
+    
+    data = pd.read_json(data) if len(tickers) > 1 else pd.read_json(data, typ='series')
     outOfSampleData = data[start_date:end_date]
-    tickers = data.columns
     ylims = [((initial_investment/outOfSampleData.iloc[0])*outOfSampleData.min()).min(), ((initial_investment/outOfSampleData.iloc[0])*outOfSampleData.max()).max()]
     fig = go.Figure()
 
-    if clickData:
-        index = clickData['points'][0]['pointNumber']
-        curveNumber = clickData['points'][0]['curveNumber']
-        if curveNumber == 0:
-            portfolio_value = evaluate_portfolio(mcPortfolios, index, outOfSampleData, initial_investment)
-            fig = px.line(portfolio_value)
-        if curveNumber == 1:
+    if not mcPortfolios:
+        if clickData:
+            index = clickData['points'][0]['pointNumber']
             asset_value = evaluate_asset(tickers, index, outOfSampleData, initial_investment)
-            fig = px.line(asset_value).update_traces(line_color='black')
+            fig = px.line(asset_value).update_traces(line_color='black',)
 
-    
-    if hoverData:
-        index = hoverData['points'][0]['pointNumber']
-        curveNumber = hoverData['points'][0]['curveNumber']
-        if curveNumber == 0:
-            portfolio_value = evaluate_portfolio(mcPortfolios, index, outOfSampleData, initial_investment)
-            fig.add_trace(go.Scatter(x=portfolio_value.index, y=portfolio_value, mode='lines', opacity=0.3))
-        if curveNumber == 1:
+        if hoverData:
+            index = hoverData['points'][0]['pointNumber']
             asset_value = evaluate_asset(tickers, index, outOfSampleData, initial_investment)
             fig.add_trace(go.Scatter(x=asset_value.index, y=asset_value, mode='lines', opacity=0.3, line=dict(color='black')))
 
-    fig.update_yaxes(range=ylims).update_layout(showlegend=False, transition_duration=10, title='Portfolio value')
+        fig.update_yaxes(range=ylims).update_layout(showlegend=False, title='Portfolio value')
+        # else:
+        #     raise PreventUpdate
+    else:
+        mcPortfolios = pd.read_json(mcPortfolios)
+
+        if clickData:
+            index = clickData['points'][0]['pointNumber']
+            curveNumber = clickData['points'][0]['curveNumber']
+            if curveNumber == 0:
+                portfolio_value = evaluate_portfolio(mcPortfolios, index, outOfSampleData, initial_investment)
+                fig = px.line(portfolio_value)
+            if curveNumber == 1:
+                asset_value = evaluate_asset(tickers, index, outOfSampleData, initial_investment)
+                fig = px.line(asset_value).update_traces(line_color='black')
+
+        
+        if hoverData:
+            index = hoverData['points'][0]['pointNumber']
+            curveNumber = hoverData['points'][0]['curveNumber']
+            if curveNumber == 0:
+                portfolio_value = evaluate_portfolio(mcPortfolios, index, outOfSampleData, initial_investment)
+                fig.add_trace(go.Scatter(x=portfolio_value.index, y=portfolio_value, mode='lines', opacity=0.3))
+            if curveNumber == 1:
+                asset_value = evaluate_asset(tickers, index, outOfSampleData, initial_investment)
+                fig.add_trace(go.Scatter(x=asset_value.index, y=asset_value, mode='lines', opacity=0.3, line=dict(color='black')))
+
+        fig.update_yaxes(range=ylims).update_layout(showlegend=False, title='Portfolio value')
     
     return fig
+
+# import json
+
+# @app.callback(
+#     Output('hover-data', 'children'),
+#     Input('mc-portfolios', 'hoverData'))
+# def hover_data(hoverData):
+#     return json.dumps(hoverData, indent=2)
+
+# Delete before deploying
+if __name__ == '__main__':
+    app.run_server(debug=True,)
