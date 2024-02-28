@@ -3,6 +3,7 @@ import pandas as pd
 import datetime as dt
 
 import plotly.express as px
+import plotly.graph_objects as go
 
 import yfinance as yf
 
@@ -11,8 +12,6 @@ from io import StringIO
 from dash import html, dcc, Input, Output, Dash
 import dash_bootstrap_components as dbc
 from dash_bootstrap_templates import load_figure_template
-import plotly.express as px
-import plotly.graph_objects as go
 from dash.exceptions import PreventUpdate
 
 def generate_portfolios(returns, numPortfolios, riskFreeRate=0, shortSelling=False):
@@ -121,160 +120,153 @@ app = Dash(__name__, external_stylesheets=[dbc.themes.CERULEAN, dbc_css])
 app.layout = html.Div([
     dcc.Store(id='store-data'),
     dcc.Store(id='store-portfolios'),
-    dcc.Tabs(
-        id='tabs',
-        value='tab-1',
-        className='dbc',
-        children=[
-            dcc.Tab(
-                label='Asset selection',
-                id='tab-1',
-                className='dbc',
-                children=[
-                    dbc.Row([
-                        dbc.Col(
-                            width=3,
-                            children=[
-                                html.P('Select assets', className='dbc'),
-                                dcc.Dropdown(
-                                    id='ticker-dropdown',
-                                    options=[
-                                        {'label': f"{row['Company']} ({row['Ticker']})", 'value': row['Ticker']}
-                                        for _, row in ftsemib.iterrows()
-                                    ],
-                                    multi=True,
-                                    className='dbc'
-                                ),
-                                html.Br(),
-                                
-                                html.P('Select start date',
-                                       className='dbc'),
-                                dcc.DatePickerSingle(
-                                    id='start-date',
-                                    min_date_allowed=dt.date(2010, 1, 1),
-                                    max_date_allowed=dt.date.today() - dt.timedelta(days=365),
-                                    initial_visible_month=dt.date.today() - dt.timedelta(days=365),
-                                    date=dt.date.today() - dt.timedelta(days=365),
-                                    display_format='DD/MM/YYYY',
-                                    className='dbc'
-                                ),
+    html.Div(className='dbc',
+             children=[
+                 dbc.Row(
+                     children=[
+                         dbc.Col(
+                             width=2,
+                             children=[dbc.Card([
+                                 html.P('Select assets', className='dbc'),
+                                 dcc.Dropdown(
+                                     id='ticker-dropdown',
+                                     options=[
+                                         {'label': f"{row['Company']} ({row['Ticker']})", 'value': row['Ticker']}
+                                         for _, row in ftsemib.iterrows()
+                                     ],
+                                     multi=True,
+                                     className='dbc'
+                                 ),
+                                 html.Br(),
 
-                                html.Br(),
-                                html.P('Analysis window',
-                                       className='dbc'),
-                                dcc.Slider(
-                                    id='analysis-window',
-                                    min=1,
-                                    max=10,
-                                    step=1,
-                                    value=1,
-                                    marks=None,
-                                    tooltip={
-                                        'placement': 'bottom',
-                                        'always_visible': True,
-                                        'template': '{value} years',
-                                    },
-                                    className='dbc'
-                                )
-                            ]
-                        ),
-                        
-                        dbc.Col(
-                            dbc.Card(
-                                dcc.Graph(id='markowitz-graph')
-                            ),
-                        )
-                    ]),
+                                 html.P('Select start date',
+                                        className='dbc'),
+                                 dcc.DatePickerSingle(
+                                     id='start-date',
+                                     min_date_allowed=dt.date(2010, 1, 1),
+                                     max_date_allowed=dt.date.today() - dt.timedelta(days=365),
+                                     initial_visible_month=dt.date.today() - dt.timedelta(days=365),
+                                     date=dt.date.today() - dt.timedelta(days=365),
+                                     display_format='DD/MM/YYYY',
+                                     className='dbc'
+                                 ),
 
-                ]
-            ),
-            dcc.Tab(
-                id='tab-2',
-                label='Monte Carlo Allocation',
-                children=[
-                    dbc.Row([
-                        dbc.Col(width=2,
-                            children=dbc.Row([
-                                html.P('Number of samples', className='dbc'),
-                                dbc.Input(id='n-portfolios', value=1000, type='number', className='dbc'),
-                                
-                                dbc.Button('Generate',
-                                    id='generate-button',
-                                    n_clicks=0,
-                                    className='dbc'),
+                                 html.Br(),
+                                 html.P('Analysis window',
+                                        className='dbc'),
+                                 dcc.Slider(
+                                     id='analysis-window',
+                                     min=1,
+                                     max=10,
+                                     step=1,
+                                     value=1,
+                                     marks=None,
+                                     tooltip={
+                                         'placement': 'bottom',
+                                         'always_visible': True,
+                                         'template': '{value} years',
+                                     },
+                                     className='dbc'
+                                 ),
+                                 html.P('Number of samples', className='dbc'),
+                                 dbc.Input(id='n-portfolios', value=1000, type='number', className='dbc'),
 
-                                html.Br(),
+                                 dbc.Button('Generate',
+                                            id='generate-button',
+                                            n_clicks=0,
+                                            className='dbc'),
 
-                                html.P('Initial investment', className='dbc'),
-                                dbc.Input(id='initial-investment', value=100, type='number', className='dbc'),
-                            ])),
-                        dbc.Col([
-                            dcc.Graph(id='mc-portfolios', 
-                                      clear_on_unhover=True
-                                      )
-                        ], width=5),
-                        dbc.Col([
-                            dcc.Graph(id='portfolio-value',
-                                    )
-                        ], width=5),
-                    ]),
-        #             html.Div([
-        #     dcc.Markdown("""
-        #         **Hover Data**
+                                 html.Br(),
 
-        #         Mouse over values in the graph.
-        #     """),
-        #     html.Pre(id='hover-data',)
-        # ],),
-                ]
-            ),
-            dcc.Tab(
-                id='tab-3',
-                label='Realized returns',
-                children=[
-                    html.Div('Content tab 3', className='dbc')
-                ]
-            ),
-        ]
-    ),
+                                 html.P('Initial investment', className='dbc'),
+                                 dbc.Input(id='initial-investment', value=100, type='number', className='dbc'),
+                             ])]
+                         ),
+                         dbc.Col(
+                             width=10,
+                             children=[
+                                 dcc.Tabs(
+                                     id='tabs',
+                                     value='tab-1',
+                                     className='dbc',
+                                     children=[
+                                         dcc.Tab(
+                                             label='Portfolio selection',
+                                             id='tab-1',
+                                             className='dbc',
+                                             children=[
+                                                 dbc.Row([
+
+                                                         dbc.Col(
+                                                            children = dcc.Graph(id='markowitz-graph',
+                                                                       clear_on_unhover=True)
+                                                         ),
+
+                                                         dbc.Col(
+                                                             children=[
+                                                                 dcc.Graph(id='portfolio-value',
+                                                                   )
+                                                             ]
+                                                         )
+                                                 ]),
+
+                                             ]
+                                         ),
+                                         dcc.Tab(
+                                             id='tab-3',
+                                             label='Realized returns',
+                                             children=[
+                                                 html.Div('Content tab 3', className='dbc')
+                                             ]
+                                         ),
+                                     ]
+                                 ),
+                             ]
+                         ),
+                     ],
+                 )
+             ]
+             ),
+
+
 ])
 
 
 # Download data and plot mean-variance graph for selected assets
 @app.callback(
     [Output('markowitz-graph', 'figure'),
-    Output('mc-portfolios', 'figure'),
-    Output('store-data', 'data')],
+     Output('store-data', 'data')],
     [Input('ticker-dropdown', 'value'),
-    Input('start-date', 'date'),
-    Input('analysis-window', 'value')],
-    prevent_initial_call=True,
-    suppress_callback_exceptions=True
+     Input('start-date', 'date'),
+     Input('analysis-window', 'value')],
+    # prevent_initial_call=True,
+    # suppress_callback_exceptions=True
 )
 def select_assets(tickers, investment_start_date, window, riskFreeRate=0.05):
     if not tickers:
-        fig = go.Figure().update_xaxes(title='Risk', range=[0, 0.5]).update_yaxes(title='Return', range=[0, 0.4]).update_layout(transition_duration=500)
+        fig = go.Figure().update_xaxes(title='Risk', range=[0, 0.5]).update_yaxes(title='Return',range=[0, 0.4]).update_layout(transition_duration=500)
         data = pd.DataFrame()
-        return fig, fig, data.to_json()
+        return fig, data.to_json()
 
     investment_start_date = dt.datetime.strptime(investment_start_date, '%Y-%m-%d')
     # Analyse assets over a window prior to the start date
-    start_date = investment_start_date - dt.timedelta(days=window*365)
+    start_date = investment_start_date - dt.timedelta(days=window * 365)
     # Evaluate the investment over one year after the start date
     end_date = investment_start_date + dt.timedelta(days=365)
     # Sort tickers in alphabetical order
     tickers = sorted(tickers)
-    
+
     try:
-        data = yf.download(tickers, start=start_date, end=end_date, )['Adj Close']
+        data = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
     except Exception as e:
         # Further work is needed to handle the exception
         raise PreventUpdate
 
     analysis_returns = data[start_date:investment_start_date].pct_change().dropna()
     mean_returns = analysis_returns.mean() * 252
-    cov_matrix = analysis_returns.cov() * 252 if len(tickers) > 1 else analysis_returns.var()*252
-    tickers_df = pd.DataFrame({'Return': analysis_returns.mean()*252, 'Risk': analysis_returns.std()*np.sqrt(252)}, index=tickers).rename_axis('Ticker')
+    cov_matrix = analysis_returns.cov() * 252 if len(tickers) > 1 else analysis_returns.var() * 252
+    tickers_df = pd.DataFrame({'Return': analysis_returns.mean() * 252, 'Risk': analysis_returns.std() * np.sqrt(252)},
+                              index=tickers).rename_axis('Ticker')
 
     if len(tickers) > 1:
         # Minimum variance line
@@ -287,30 +279,36 @@ def select_assets(tickers, investment_start_date, window, riskFreeRate=0.05):
     fig = px.scatter(tickers_df, x='Risk', y='Return', text=tickers_df.index)
 
     if len(tickers) > 1:
-        fig.add_scatter(x=sigma_mu, y=mu, mode='lines', line=dict(color='black', dash='dash'), name='Minimum variance line')
-        fig.add_trace(go.Scatter(x=[min_var_sigma], y=[min_var_mu], mode='markers', marker=dict(size=10, color='black'), showlegend=False, name='Minimum variance portfolio', text='Minimum variance portfolio'))
-        fig.add_trace(go.Scatter(x=[market_sigma], y=[market_mu], mode='markers', marker=dict(size=10, color='red'), showlegend=False, name='Market portfolio', text='Market portfolio'))
+        fig.add_scatter(x=sigma_mu, y=mu, mode='lines', line=dict(color='black', dash='dash'),
+                        name='Minimum variance line')
+        fig.add_trace(go.Scatter(x=[min_var_sigma], y=[min_var_mu], mode='markers',
+                                 marker=dict(size=10, color='black'), showlegend=False,
+                                 name='Minimum variance portfolio', text='Minimum variance portfolio'))
+        fig.add_trace(go.Scatter(x=[market_sigma], y=[market_mu], mode='markers',
+                                 marker=dict(size=10, color='red'), showlegend=False,
+                                 name='Market portfolio', text='Market portfolio'))
     fig.update_traces(textposition='top center').update_layout(transition_duration=500, title='Asset selection')
 
-    return fig, fig, data.to_json()
+    return fig, data.to_json()
+
 
 @app.callback(
-    [Output('mc-portfolios', 'figure', allow_duplicate=True),
-    Output('store-portfolios', 'data'),
-    Output('ticker-dropdown', 'disabled'),
-    Output('generate-button', 'n_clicks')],
+    [Output('markowitz-graph', 'figure', allow_duplicate=True),
+     Output('store-portfolios', 'data'),
+     Output('ticker-dropdown', 'disabled'),
+     Output('generate-button', 'n_clicks')],
     [Input('store-data', 'data'),
-    Input('n-portfolios', 'value'),
-    Input('start-date', 'date'),
-    Input('generate-button', 'n_clicks'),
-    ],
+     Input('n-portfolios', 'value'),
+     Input('start-date', 'date'),
+     Input('generate-button', 'n_clicks'),
+     ],
     prevent_initial_call=True,
     suppress_callback_exceptions=True
 )
 def mc_allocation(data, n_portfolios, investment_start_date, n_clicks):
     if not n_clicks:
         raise PreventUpdate
-    
+
     if not data:
         raise PreventUpdate
 
@@ -351,8 +349,8 @@ def mc_allocation(data, n_portfolios, investment_start_date, n_clicks):
     [Input('ticker-dropdown', 'value'),
     Input('store-data', 'data'),
     Input('store-portfolios', 'data'),
-    Input('mc-portfolios', 'clickData'),
-    Input('mc-portfolios', 'hoverData'),
+    Input('markowitz-graph', 'clickData'),
+    Input('markowitz-graph', 'hoverData'),
     Input('initial-investment', 'value'),
     Input('start-date', 'date'),],
 )
@@ -361,7 +359,7 @@ def plot_portfolio(tickers, data, mcPortfolios, clickData, hoverData, initial_in
         raise PreventUpdate
     
     data = pd.read_json(StringIO(data)) if len(tickers) > 1 else pd.read_json(StringIO(data), typ='series')
-    outOfSampleData = data[:investment_start_date]
+    outOfSampleData = data[investment_start_date:]
     ylims = [((initial_investment/outOfSampleData.iloc[0])*outOfSampleData.min()).min(), ((initial_investment/outOfSampleData.iloc[0])*outOfSampleData.max()).max()]
     fig = go.Figure()
 
@@ -417,7 +415,7 @@ def plot_portfolio(tickers, data, mcPortfolios, clickData, hoverData, initial_in
 
 # @app.callback(
 #     Output('hover-data', 'children'),
-#     Input('mc-portfolios', 'hoverData'))
+#     Input('markowitz-graph', 'hoverData'))
 # def hover_data(hoverData):
 #     return json.dumps(hoverData, indent=2)
 
