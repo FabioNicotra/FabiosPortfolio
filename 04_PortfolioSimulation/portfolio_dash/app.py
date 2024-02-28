@@ -6,6 +6,8 @@ import plotly.express as px
 
 import yfinance as yf
 
+from io import StringIO
+
 from dash import html, dcc, Input, Output, Dash
 import dash_bootstrap_components as dbc
 from dash_bootstrap_templates import load_figure_template
@@ -52,6 +54,59 @@ def evaluate_asset(tickers, index, data, initialValue):
     nShares = initialValue/asset.iloc[0]
     asset_value = nShares*asset
     return asset_value
+
+def minimum_variance_portfolio(mean_returns, cov_matrix):
+    nAssets = len(mean_returns)
+    m = mean_returns
+    C = cov_matrix
+    u = np.ones(nAssets)
+
+    # Intermediate calculations
+    C_inv = np.linalg.inv(C)
+    w = C_inv.dot(u) / u.T.dot(C_inv).dot(u)
+    mu = m.T.dot(w)
+    sigma = np.sqrt(w.T.dot(C).dot(w))
+
+    return mu, sigma
+
+def minimum_variance_line(mean_returns, cov_matrix):
+    
+    nAssets = len(mean_returns) if mean_returns.ndim > 0 else 1
+    m = mean_returns
+    C = cov_matrix
+    u = np.ones(nAssets)
+
+    # Intermediate calculations
+    C_inv = np.linalg.inv(C)
+    D_mat = np.array([[u.T.dot(C_inv).dot(u), u.T.dot(C_inv).dot(m)],
+                      [m.T.dot(C_inv).dot(u), m.T.dot(C_inv).dot(m)]])
+    D = np.linalg.det(D_mat)
+    a = (u.T.dot(C_inv).dot(u)*C_inv.dot(m) - u.T.dot(C_inv).dot(m)*C_inv.dot(u)) / D
+    b = (m.T.dot(C_inv).dot(m)*C_inv.dot(u) - m.T.dot(C_inv).dot(u)*C_inv.dot(m)) / D
+
+    # Calculate the minimum variance line
+    mu = np.linspace(0, 0.4, 100)
+    w_mu = np.zeros((nAssets, len(mu)))
+    sigma_mu = np.zeros(len(mu))
+    for i, param in enumerate(mu):
+        w_mu[:,i] = a*param + b
+        sigma_mu[i] = np.sqrt(w_mu[:,i].T.dot(C).dot(w_mu[:,i]))
+
+    return mu, sigma_mu
+
+def market_portfolio(mean_returns, cov_matrix, riskFreeRate=0):
+    nAssets = len(mean_returns)
+    m = mean_returns
+    C = cov_matrix
+    u = np.ones(nAssets)
+
+    # Intermediate calculations
+    C_inv = np.linalg.inv(C)
+    w = C_inv.dot(m - riskFreeRate*u) / (m - riskFreeRate*u).T.dot(C_inv).dot(u)
+    mu = m.T.dot(w)
+    sigma = np.sqrt(w.T.dot(C).dot(w))
+
+    return mu, sigma
 
 # Get a list of symbols from FTSEMIB index
 ftsemib = pd.read_html('https://en.wikipedia.org/wiki/FTSE_MIB')[1]
@@ -188,7 +243,7 @@ app.layout = html.Div([
     prevent_initial_call=True,
     suppress_callback_exceptions=True
 )
-def select_assets(tickers, start_date, end_date, backtest_start_date):
+def select_assets(tickers, start_date, end_date, backtest_start_date, riskFreeRate=0.05):
     if not tickers:
         fig = go.Figure().update_xaxes(title='Risk', range=[0, 0.5]).update_yaxes(title='Return', range=[0, 0.4]).update_layout(transition_duration=500)
         data = pd.DataFrame()
@@ -206,9 +261,24 @@ def select_assets(tickers, start_date, end_date, backtest_start_date):
         raise PreventUpdate
 
     analysis_returns = data[start_date:backtest_start_date].pct_change().dropna()
+    mean_returns = analysis_returns.mean() * 252
+    cov_matrix = analysis_returns.cov() * 252 if len(tickers) > 1 else analysis_returns.var()*252
     tickers_df = pd.DataFrame({'Return': analysis_returns.mean()*252, 'Risk': analysis_returns.std()*np.sqrt(252)}, index=tickers).rename_axis('Ticker')
 
+    if len(tickers) > 1:
+        # Minimum variance line
+        mu, sigma_mu = minimum_variance_line(mean_returns, cov_matrix)
+        # Minimum variance portfolio
+        min_var_mu, min_var_sigma = minimum_variance_portfolio(mean_returns, cov_matrix)
+        # Market portfolio
+        market_mu, market_sigma = market_portfolio(mean_returns, cov_matrix, riskFreeRate)
+
     fig = px.scatter(tickers_df, x='Risk', y='Return', text=tickers_df.index)
+
+    if len(tickers) > 1:
+        fig.add_scatter(x=sigma_mu, y=mu, mode='lines', line=dict(color='black', dash='dash'), name='Minimum variance line')
+        fig.add_trace(go.Scatter(x=[min_var_sigma], y=[min_var_mu], mode='markers', marker=dict(size=10, color='black'), showlegend=False, name='Minimum variance portfolio', text='Minimum variance portfolio'))
+        fig.add_trace(go.Scatter(x=[market_sigma], y=[market_mu], mode='markers', marker=dict(size=10, color='red'), showlegend=False, name='Market portfolio', text='Market portfolio'))
     fig.update_traces(textposition='top center').update_layout(transition_duration=500, title='Asset selection')
 
     return fig, fig, data.to_json()
@@ -234,7 +304,7 @@ def mc_allocation(data, n_portfolios, analysis_start_date, analysis_end_date, n_
     if not data:
         raise PreventUpdate
 
-    data = pd.read_json(data)
+    data = pd.read_json(StringIO(data))
 
     # Check if only one asset is selected by checking if data is a Series
     if isinstance(data, pd.Series):
@@ -282,7 +352,7 @@ def plot_portfolio(tickers, data, mcPortfolios, clickData, hoverData, initial_in
     if not clickData and not hoverData:
         raise PreventUpdate
     
-    data = pd.read_json(data) if len(tickers) > 1 else pd.read_json(data, typ='series')
+    data = pd.read_json(StringIO(data)) if len(tickers) > 1 else pd.read_json(StringIO(data), typ='series')
     outOfSampleData = data[start_date:end_date]
     ylims = [((initial_investment/outOfSampleData.iloc[0])*outOfSampleData.min()).min(), ((initial_investment/outOfSampleData.iloc[0])*outOfSampleData.max()).max()]
     fig = go.Figure()
@@ -302,7 +372,7 @@ def plot_portfolio(tickers, data, mcPortfolios, clickData, hoverData, initial_in
         # else:
         #     raise PreventUpdate
     else:
-        mcPortfolios = pd.read_json(mcPortfolios)
+        mcPortfolios = pd.read_json(StringIO(mcPortfolios))
 
         if clickData:
             index = clickData['points'][0]['pointNumber']
