@@ -146,27 +146,36 @@ app.layout = html.Div([
                                     className='dbc'
                                 ),
                                 html.Br(),
-                                html.P('Select date range for analysis', className='dbc'),
-                                dcc.DatePickerRange(
-                                    id='analysis-date-picker',
+                                
+                                html.P('Select start date',
+                                       className='dbc'),
+                                dcc.DatePickerSingle(
+                                    id='start-date',
                                     min_date_allowed=dt.date(2010, 1, 1),
-                                    max_date_allowed=dt.date.today(),
-                                    initial_visible_month=dt.date.today(),
-                                    start_date=dt.date.today() - dt.timedelta(days=2*365),
-                                    end_date=dt.date.today(),
+                                    max_date_allowed=dt.date.today() - dt.timedelta(days=365),
+                                    initial_visible_month=dt.date.today() - dt.timedelta(days=365),
+                                    date=dt.date.today() - dt.timedelta(days=365),
+                                    display_format='DD/MM/YYYY',
                                     className='dbc'
                                 ),
 
                                 html.Br(),
-                                html.P('Select start date for portfolio evaluation', className='dbc'),
-                                dcc.DatePickerSingle(
-                                    id='backtest-start-date',
-                                    min_date_allowed=dt.date(2010, 1, 1),
-                                    max_date_allowed=dt.date.today(),
-                                    initial_visible_month=dt.date.today(),
-                                    date=dt.date.today() - dt.timedelta(days=365),
+                                html.P('Analysis window',
+                                       className='dbc'),
+                                dcc.Slider(
+                                    id='analysis-window',
+                                    min=1,
+                                    max=10,
+                                    step=1,
+                                    value=1,
+                                    marks=None,
+                                    tooltip={
+                                        'placement': 'bottom',
+                                        'always_visible': True,
+                                        'template': '{value} years',
+                                    },
                                     className='dbc'
-                                ),
+                                )
                             ]
                         ),
                         
@@ -237,30 +246,32 @@ app.layout = html.Div([
     Output('mc-portfolios', 'figure'),
     Output('store-data', 'data')],
     [Input('ticker-dropdown', 'value'),
-    Input('analysis-date-picker', 'start_date'),
-    Input('analysis-date-picker', 'end_date'),
-    Input('backtest-start-date', 'date')],
+    Input('start-date', 'date'),
+    Input('analysis-window', 'value')],
     prevent_initial_call=True,
     suppress_callback_exceptions=True
 )
-def select_assets(tickers, start_date, end_date, backtest_start_date, riskFreeRate=0.05):
+def select_assets(tickers, investment_start_date, window, riskFreeRate=0.05):
     if not tickers:
         fig = go.Figure().update_xaxes(title='Risk', range=[0, 0.5]).update_yaxes(title='Return', range=[0, 0.4]).update_layout(transition_duration=500)
         data = pd.DataFrame()
         return fig, fig, data.to_json()
 
-    start_date = dt.datetime.strptime(start_date, '%Y-%m-%d')
-    end_date = dt.datetime.strptime(end_date, '%Y-%m-%d')
-    backtest_start_date = dt.datetime.strptime(backtest_start_date, '%Y-%m-%d')
+    investment_start_date = dt.datetime.strptime(investment_start_date, '%Y-%m-%d')
+    # Analyse assets over a window prior to the start date
+    start_date = investment_start_date - dt.timedelta(days=window*365)
+    # Evaluate the investment over one year after the start date
+    end_date = investment_start_date + dt.timedelta(days=365)
     # Sort tickers in alphabetical order
     tickers = sorted(tickers)
     
     try:
         data = yf.download(tickers, start=start_date, end=end_date, )['Adj Close']
     except Exception as e:
+        # Further work is needed to handle the exception
         raise PreventUpdate
 
-    analysis_returns = data[start_date:backtest_start_date].pct_change().dropna()
+    analysis_returns = data[start_date:investment_start_date].pct_change().dropna()
     mean_returns = analysis_returns.mean() * 252
     cov_matrix = analysis_returns.cov() * 252 if len(tickers) > 1 else analysis_returns.var()*252
     tickers_df = pd.DataFrame({'Return': analysis_returns.mean()*252, 'Risk': analysis_returns.std()*np.sqrt(252)}, index=tickers).rename_axis('Ticker')
@@ -290,14 +301,13 @@ def select_assets(tickers, start_date, end_date, backtest_start_date, riskFreeRa
     Output('generate-button', 'n_clicks')],
     [Input('store-data', 'data'),
     Input('n-portfolios', 'value'),
-    Input('analysis-date-picker', 'start_date'),
-    Input('backtest-start-date', 'date'),
+    Input('start-date', 'date'),
     Input('generate-button', 'n_clicks'),
     ],
     prevent_initial_call=True,
     suppress_callback_exceptions=True
 )
-def mc_allocation(data, n_portfolios, analysis_start_date, analysis_end_date, n_clicks):
+def mc_allocation(data, n_portfolios, investment_start_date, n_clicks):
     if not n_clicks:
         raise PreventUpdate
     
@@ -309,8 +319,7 @@ def mc_allocation(data, n_portfolios, analysis_start_date, analysis_end_date, n_
     # Check if only one asset is selected by checking if data is a Series
     if isinstance(data, pd.Series):
         raise PreventUpdate
-    
-    analysis_returns = data[analysis_start_date:analysis_end_date].pct_change().dropna()
+    analysis_returns = data[:investment_start_date].pct_change().dropna()
 
     if analysis_returns.empty:
         fig = go.Figure().update_layout(transition_duration=500)
@@ -345,25 +354,30 @@ def mc_allocation(data, n_portfolios, analysis_start_date, analysis_end_date, n_
     Input('mc-portfolios', 'clickData'),
     Input('mc-portfolios', 'hoverData'),
     Input('initial-investment', 'value'),
-    Input('backtest-start-date', 'date'),
-    Input('analysis-date-picker', 'end_date'),],
+    Input('start-date', 'date'),],
 )
-def plot_portfolio(tickers, data, mcPortfolios, clickData, hoverData, initial_investment, start_date, end_date):
+def plot_portfolio(tickers, data, mcPortfolios, clickData, hoverData, initial_investment, investment_start_date):
     if not clickData and not hoverData:
         raise PreventUpdate
     
     data = pd.read_json(StringIO(data)) if len(tickers) > 1 else pd.read_json(StringIO(data), typ='series')
-    outOfSampleData = data[start_date:end_date]
+    outOfSampleData = data[:investment_start_date]
     ylims = [((initial_investment/outOfSampleData.iloc[0])*outOfSampleData.min()).min(), ((initial_investment/outOfSampleData.iloc[0])*outOfSampleData.max()).max()]
     fig = go.Figure()
 
     if not mcPortfolios:
         if clickData:
+            curveNumber = clickData['points'][0]['curveNumber']
+            if curveNumber != 0:
+                raise PreventUpdate
             index = clickData['points'][0]['pointNumber']
             asset_value = evaluate_asset(tickers, index, outOfSampleData, initial_investment)
             fig = px.line(asset_value).update_traces(line_color='black',)
 
         if hoverData:
+            curveNumber = hoverData['points'][0]['curveNumber']
+            if curveNumber != 0:
+                raise PreventUpdate
             index = hoverData['points'][0]['pointNumber']
             asset_value = evaluate_asset(tickers, index, outOfSampleData, initial_investment)
             fig.add_trace(go.Scatter(x=asset_value.index, y=asset_value, mode='lines', opacity=0.3, line=dict(color='black')))
