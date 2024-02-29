@@ -16,7 +16,7 @@ import dash_bootstrap_components as dbc
 from dash_bootstrap_templates import load_figure_template
 from dash.exceptions import PreventUpdate
 
-def generate_portfolios(returns, numPortfolios, riskFreeRate=0, shortSelling=False):
+def generate_portfolios(returns, numPortfolios, riskFreeRate, shortSelling=False):
     tickers = returns.columns
     nAssets = len(tickers)
     mean_returns = returns.mean() * 252
@@ -28,7 +28,7 @@ def generate_portfolios(returns, numPortfolios, riskFreeRate=0, shortSelling=Fal
 
     # Generate random weights and calculate the expected return, volatility and Sharpe ratio
     for i in range(numPortfolios):
-        weights = np.random.random(nAssets)
+        weights = 2*np.random.random(nAssets) - 1 if shortSelling else np.random.random(nAssets)
         weights /= np.sum(weights)
         portfolios.loc[i, [ticker+' weight' for ticker in tickers]] = weights
 
@@ -116,11 +116,35 @@ app.layout = html.Div([
                                      },
                                      className='dbc'
                                  ),
+                                html.Br(),
+                                html.P('Risk-free rate', className='dbc'),
+                                dbc.Input(
+                                    id='risk-free-rate',
+                                    value=4,
+                                    type='number',
+                                    step=0.1,
+                                    className='dbc',
+                                 ),
+                                 html.Br(),
+                                html.P('Options', className='dbc'),
+                                dbc.Switch(
+                                    id='include-risk-free',
+                                    label='Include risk-free investment',
+                                    value=False,
+                                    className='dbc'
+                                ),
+                                dbc.Switch(
+                                    id='short-selling',
+                                    label='Allow short selling',
+                                    value=False,
+                                    className='dbc'
+                                ),
+                                 html.Br(),
                                  html.P('Number of samples', className='dbc'),
                                  dbc.Input(id='n-portfolios', value=1000, type='number', className='dbc'),
 
-                                 dbc.Button('Generate',
-                                            id='generate-button',
+                                 dbc.Button('Run',
+                                            id='run-button',
                                             n_clicks=0,
                                             className='dbc'),
 
@@ -186,11 +210,13 @@ app.layout = html.Div([
      Output('store-data', 'data')],
     [Input('ticker-dropdown', 'value'),
      Input('start-date', 'date'),
-     Input('analysis-window', 'value')],
+     Input('analysis-window', 'value'),
+     Input('risk-free-rate', 'value'),],
     # prevent_initial_call=True,
     # suppress_callback_exceptions=True
 )
-def select_assets(tickers, investment_start_date, window, riskFreeRate=0.05):
+def select_assets(tickers, investment_start_date, window, riskFreeRate):
+    riskFreeRate = riskFreeRate/100
     if not tickers:
         fig = go.Figure().update_xaxes(title='Risk', range=[0, 0.5]).update_yaxes(title='Return',range=[0, 0.4]).update_layout(transition_duration=500)
         data = pd.DataFrame()
@@ -201,8 +227,6 @@ def select_assets(tickers, investment_start_date, window, riskFreeRate=0.05):
     start_date = investment_start_date - dt.timedelta(days=window * 365)
     # Evaluate the investment over one year after the start date
     end_date = investment_start_date + dt.timedelta(days=365)
-    # Sort tickers in alphabetical order
-    # tickers = sorted(tickers)
 
     basket = Basket(tickers, riskFreeRate)
     basket.get_data(start_date, end_date)
@@ -213,23 +237,29 @@ def select_assets(tickers, investment_start_date, window, riskFreeRate=0.05):
     fig = px.scatter(stocks_mv, x='Risk', y='Return', text=stocks_mv.index).update_traces(marker=dict(size=10))
 
     if len(tickers) > 1:
+        # Add minimum variance portfolio
         fig.add_scatter(x=[minVar_portfolio['risk']], y=[minVar_portfolio['return']], mode='markers',
                                  marker=dict(size=10, color='black'), showlegend=False,
                                  name='Minimum variance portfolio', text='Minimum variance portfolio')
+        # Add max Sharpe portfolio
         fig.add_scatter(x=[maxSharpe_portfolio['risk']], y=[maxSharpe_portfolio['return']], mode='markers',
                                  marker=dict(size=10, color='red'), showlegend=False,
                                  name='Market portfolio', text='Market portfolio')
+        # Add efficient frontier
+        fig.add_scatter(x=efficient_frontier['Risk'], y=efficient_frontier['Return'], mode='lines', 
+                                 line=dict(color='black',width=1), name='Minimum variance line', showlegend=False)
+        # Add risk-free asset
         fig.add_scatter(x=[0], y=[riskFreeRate], mode='markers',
                                  marker=dict(size=10, color='red'), showlegend=False,
                                  name='Risk-free asset', text='Risk-free asset')
+        # Add market line
         fig.add_scatter(x=[0, maxSharpe_portfolio['risk']], y=[riskFreeRate, maxSharpe_portfolio['return']],
                                  mode='lines', line=dict(color='red', width=1), showlegend=False,
                                  name='Capital market line', text='Capital market line')
-        fig.add_scatter(x=efficient_frontier['Risk'], y=efficient_frontier['Return'], mode='lines', 
-                                 line=dict(color='black',width=1), name='Minimum variance line', showlegend=False)
+        
         fig.update_xaxes(range=[0, 0.5])
-
-    fig.update_traces(textposition='top center').update_layout(transition_duration=500, title='Asset selection')
+    # Market line and efficient frontier based on ylims
+    fig.update_traces(textposition='top center').update_layout(transition_duration=100, title='Asset selection')
 
     return fig, data.to_json()
 
@@ -238,26 +268,41 @@ def select_assets(tickers, investment_start_date, window, riskFreeRate=0.05):
     [Output('markowitz-graph', 'figure', allow_duplicate=True),
      Output('store-portfolios', 'data'),
      Output('ticker-dropdown', 'disabled'),
-     Output('generate-button', 'n_clicks')],
-    [Input('store-data', 'data'),
+     Output('run-button', 'n_clicks')],
+    [Input('ticker-dropdown', 'value'),
+     Input('risk-free-rate', 'value'),
      Input('n-portfolios', 'value'),
      Input('start-date', 'date'),
-     Input('generate-button', 'n_clicks'),
+     Input('analysis-window', 'value'),
+     Input('include-risk-free', 'value'),
+     Input('short-selling', 'value'),
+     Input('run-button', 'n_clicks'),
      ],
     prevent_initial_call=True,
     suppress_callback_exceptions=True
 )
-def mc_allocation(data, n_portfolios, investment_start_date, n_clicks):
+def mc_allocation(tickers, riskFreeRate, n_portfolios, investment_start_date, window, includeRiskFree, shortSelling, n_clicks):
+    riskFreeRate = riskFreeRate/100
     if not n_clicks:
         raise PreventUpdate
 
-    if not data:
+    if not tickers:
+        # TODO - Return figure with no data
         raise PreventUpdate
+    
+    investment_start_date = dt.datetime.strptime(investment_start_date, '%Y-%m-%d')
+    # Analyse assets over a window prior to the start date
+    start_date = investment_start_date - dt.timedelta(days=window * 365)
+    # Evaluate the investment over one year after the start date
+    end_date = investment_start_date + dt.timedelta(days=365)
 
-    data = pd.read_json(StringIO(data))
+    basket = Basket(tickers, riskFreeRate)
+    basket.get_data(start_date, end_date)
+    data = basket.data
 
     # Check if only one asset is selected by checking if data is a Series
     if isinstance(data, pd.Series):
+        # TODO - Warn user that only one asset is selected
         raise PreventUpdate
     analysis_returns = data[:investment_start_date].pct_change().dropna()
 
@@ -265,25 +310,59 @@ def mc_allocation(data, n_portfolios, investment_start_date, n_clicks):
         fig = go.Figure().update_layout(transition_duration=500)
         n_clicks = None
         mc_portfolios = pd.DataFrame()
-        isDisabled = True
-        return fig, mc_portfolios.to_json(), isDisabled, n_clicks
+        assetInputDisabled = True
+        return fig, mc_portfolios.to_json(), assetInputDisabled, n_clicks
 
-    tickers = analysis_returns.columns
-    tickers_df = pd.DataFrame({'Return': analysis_returns.mean()*252, 'Risk': analysis_returns.std()*np.sqrt(252)}, index=tickers).rename_axis('Ticker')
+    stocks_mv, minVar_portfolio, maxSharpe_portfolio, efficient_frontier = basket.mv_analysis(investment_start_date)
     
-    mc_portfolios = generate_portfolios(analysis_returns, n_portfolios)
+    mc_portfolios = generate_portfolios(analysis_returns, n_portfolios, riskFreeRate, shortSelling)
     fig = px.scatter(mc_portfolios, x='Risk', y='Return', color='Sharpe Ratio', hover_data={**{ticker +' weight': ':.2f' for ticker in tickers}, **{'Return': ':.2f', 'Risk': ':.2f', 'Sharpe Ratio': ':.2f'}}, opacity=0.5,).update_traces(name='minchio')
-    fig.add_scatter(x=tickers_df['Risk'], y=tickers_df['Return'], mode='markers', marker=dict(size=7.5,),showlegend=False, name='Tickers', text = [f'<b>{index}</b> <br>Standard deviation: {vol:.2f}<br>Expected return: {ret:.2f}' for index, vol, ret in zip(tickers_df.index, tickers_df['Risk'], tickers_df['Return'])],hoverinfo='text')
+    fig.add_scatter(x=stocks_mv['Risk'], y=stocks_mv['Return'], mode='markers', marker=dict(size=7.5,),showlegend=False, name='Tickers', text = [f'<b>{index}</b> <br>Standard deviation: {vol:.2f}<br>Expected return: {ret:.2f}' for index, vol, ret in zip(stocks_mv.index, stocks_mv['Risk'], stocks_mv['Return'])],hoverinfo='text')
+    
+    # Add minimum variance portfolio
+    fig.add_scatter(x=[minVar_portfolio['risk']], y=[minVar_portfolio['return']], mode='markers',
+                            marker=dict(size=10, color='black'), showlegend=False,
+                            name='Minimum variance portfolio', text='Minimum variance portfolio')
+    # Add max Sharpe portfolio
+    fig.add_scatter(x=[maxSharpe_portfolio['risk']], y=[maxSharpe_portfolio['return']], mode='markers',
+                                 marker=dict(size=10, color='red'), showlegend=False,
+                                 name='Market portfolio', text='Market portfolio')
+    # Add efficient frontier
+    fig.add_scatter(x=efficient_frontier['Risk'], y=efficient_frontier['Return'], mode='lines', 
+                                 line=dict(color='black',width=1), name='Minimum variance line', showlegend=False)
+
+    if includeRiskFree:
+        # Add risk-free asset
+        fig.add_scatter(x=[0], y=[riskFreeRate], mode='markers',
+                                marker=dict(size=10, color='red'), showlegend=False,
+                                name='Risk-free asset', text='Risk-free asset')
+        # Add market line
+        fig.add_scatter(x=[0, maxSharpe_portfolio['risk']], y=[riskFreeRate, maxSharpe_portfolio['return']],
+                                 mode='lines', line=dict(color='red', width=1), showlegend=False,
+                                 name='Capital market line', text='Capital market line')
+
     if len(mc_portfolios) <= 1000:
         fig.update_layout(transition_duration=500)
+
+    # Set axis limits
+    x_min = 0 if includeRiskFree else minVar_portfolio['risk']
+    x_max = max(stocks_mv['Risk'].max(), maxSharpe_portfolio['risk'])
+    xlims = [0.9*x_min, x_max*1.1]
+    # Set y-axis limits
+    y_min = min(stocks_mv['Return'].min(), 0) if includeRiskFree else stocks_mv['Return'].min()
+    coeff = 0.9 if y_min > 0 else 1.1
+    y_max = max(maxSharpe_portfolio['return'], stocks_mv['Return'].max())
+    ylims = [coeff*y_min, y_max*1.1]
+
+    fig.update_xaxes(range=xlims).update_yaxes(range=ylims)
 
     fig.update_layout(title='Monte Carlo Simulation')
 
     n_clicks = None
 
-    isDisabled = True
+    assetInputDisabled = True
 
-    return fig, mc_portfolios.to_json(), isDisabled, n_clicks
+    return fig, mc_portfolios.to_json(), assetInputDisabled, n_clicks
 
 
 @app.callback(

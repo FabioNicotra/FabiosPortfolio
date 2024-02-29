@@ -74,7 +74,7 @@ class Basket:
             maxSharpe_portfolio = None
             efficient_frontier = None
         else:
-            cov_matrix = returns.cov()*252 if len(self) > 1 else returns.var()*252
+            cov_matrix = returns.cov()*252
             self.cov_matrix = cov_matrix
             stocks_mv = pd.DataFrame({'Return': mean_returns, 'Risk': np.sqrt(np.diag(cov_matrix))}, index=self.tickerList)
             minVar_portfolio = self.minVar_portfolio()
@@ -146,3 +146,5 @@ class Basket:
         minVar_line = pd.DataFrame({'Return': mu, 'Risk': sigma_mu, **{f'{ticker} weight': w_mu[i] for i, ticker in enumerate(self.tickerList)}})
 
         return minVar_line
+    
+# class Portfolio:
