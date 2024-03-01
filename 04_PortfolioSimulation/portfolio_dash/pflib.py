@@ -21,6 +21,14 @@ class Stock:
     def add_data(self, data: pd.Series):
         self.data = data
 
+    def evaluate(self, initialValue: float, investment_start: dt.date):
+        '''
+        Evaluate the stock
+        '''
+        nShares = initialValue/self.data.loc[investment_start]
+        stock_value = nShares*self.data[investment_start:]
+        return stock_value
+
 class Basket:
     def __init__(self, tickerList: list, riskFreeRate: float):
         self.tickerList = sorted(tickerList)

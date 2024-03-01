@@ -356,6 +356,7 @@ def mc_allocation(tickers, riskFreeRate, n_portfolios, investment_start_date, wi
     Input('risk-free-rate', 'value'),
     Input('analysis-window', 'value'),
     Input('include-risk-free', 'value'),
+    Input('short-selling', 'value'),
     Input('store-portfolios', 'data'),
     Input('markowitz-graph', 'clickData'),
     Input('markowitz-graph', 'hoverData'),
@@ -363,10 +364,10 @@ def mc_allocation(tickers, riskFreeRate, n_portfolios, investment_start_date, wi
     Input('initial-investment', 'value'),
     Input('start-date', 'date'),],
 )
-def plot_portfolio(tickers, riskFreeRate, window, includeRiskFree, mcPortfolios, clickData, hoverData, figure, initial_investment, investment_start_date):
-    riskFreeRate = riskFreeRate/100
-    if not clickData and not hoverData:
+def plot_portfolio(tickers, riskFreeRate, window, includeRiskFree, shortSelling, mcPortfolios, clickData, hoverData, figure, initial_investment, investment_start_date):
+    if not tickers:
         raise PreventUpdate
+    riskFreeRate = riskFreeRate/100
     
     investment_start_date = dt.datetime.strptime(investment_start_date, '%Y-%m-%d')
     # Analyse assets over a window prior to the start date
@@ -376,10 +377,14 @@ def plot_portfolio(tickers, riskFreeRate, window, includeRiskFree, mcPortfolios,
 
     basket = Basket(tickers, riskFreeRate)
     basket.get_data(start_date, end_date)
+    portfolio = Portfolio(basket, riskFreeRate, includeRiskFree)
 
     outOfSampleData = basket.data[investment_start_date:]
     ylims = [((initial_investment/outOfSampleData.iloc[0])*outOfSampleData.min()).min(), ((initial_investment/outOfSampleData.iloc[0])*outOfSampleData.max()).max()]
     fig = go.Figure()
+    
+    if not clickData and not hoverData:
+        raise PreventUpdate
 
     if not mcPortfolios:
         if clickData:
@@ -388,8 +393,8 @@ def plot_portfolio(tickers, riskFreeRate, window, includeRiskFree, mcPortfolios,
             if trace_name != 'Assets':
                 raise PreventUpdate
             index = clickData['points'][0]['pointNumber']
-            asset_value = evaluate_asset(tickers, index, outOfSampleData, initial_investment)
-            fig = px.line(asset_value).update_traces(line_color='black',)
+            asset_value = portfolio.basket.stocks[index].evaluate(initial_investment, investment_start_date)
+            fig.add_trace(go.Scatter(x=asset_value.index, y=asset_value, mode='lines', line=dict(color='black')))
 
         if hoverData:
             curveNumber = hoverData['points'][0]['curveNumber']
@@ -397,14 +402,13 @@ def plot_portfolio(tickers, riskFreeRate, window, includeRiskFree, mcPortfolios,
             if trace_name != 'Assets':
                 raise PreventUpdate
             index = hoverData['points'][0]['pointNumber']
-            asset_value = evaluate_asset(tickers, index, outOfSampleData, initial_investment)
+            asset_value = portfolio.basket.stocks[index].evaluate(initial_investment, investment_start_date)
             fig.add_trace(go.Scatter(x=asset_value.index, y=asset_value, mode='lines', opacity=0.3, line=dict(color='black')))
 
         fig.update_yaxes(range=ylims).update_layout(showlegend=False, title='Portfolio value')
         # else:
         #     raise PreventUpdate
     else:
-        portfolio = Portfolio(basket, riskFreeRate, includeRiskFree)
         portfolio.load(mcPortfolios)
         portfolio.set_investment_start(investment_start_date)
 
@@ -415,22 +419,24 @@ def plot_portfolio(tickers, riskFreeRate, window, includeRiskFree, mcPortfolios,
             if trace_name == 'Monte Carlo samples':
                 portfolio_value = portfolio.evaluate(index, initial_investment)
                 fig = px.line(portfolio_value)
-            if trace_name == 'Assets':
-                asset_value = evaluate_asset(tickers, index, outOfSampleData, initial_investment)
+            elif trace_name == 'Assets':
+                asset_value = portfolio.basket.stocks[index].evaluate(initial_investment, investment_start_date)
                 fig = px.line(asset_value).update_traces(line_color='black')
 
         
         if hoverData:
             index = hoverData['points'][0]['pointNumber']
             curveNumber = hoverData['points'][0]['curveNumber']
-            if curveNumber == 0:
+            trace_name = figure['data'][curveNumber]['name']
+            if trace_name == 'Monte Carlo samples':
                 portfolio_value = portfolio.evaluate(index, initial_investment)
                 fig.add_trace(go.Scatter(x=portfolio_value.index, y=portfolio_value, mode='lines', opacity=0.3))
-            if curveNumber == 1:
-                asset_value = evaluate_asset(tickers, index, outOfSampleData, initial_investment)
+            elif trace_name == 'Assets':
+                asset_value = portfolio.basket.stocks[index].evaluate(initial_investment, investment_start_date)
                 fig.add_trace(go.Scatter(x=asset_value.index, y=asset_value, mode='lines', opacity=0.3, line=dict(color='black')))
 
-        fig.update_yaxes(range=ylims).update_layout(showlegend=False, title='Portfolio value')
+        fig.update_layout(showlegend=False, title='Portfolio value')
+        fig.update_yaxes(range=ylims) if not shortSelling else None
     
     return fig
 
