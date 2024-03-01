@@ -16,32 +16,6 @@ import dash_bootstrap_components as dbc
 from dash_bootstrap_templates import load_figure_template
 from dash.exceptions import PreventUpdate
 
-def generate_portfolios(returns, numPortfolios, riskFreeRate, shortSelling=False):
-    tickers = returns.columns
-    nAssets = len(tickers)
-    mean_returns = returns.mean() * 252
-    cov_matrix = returns.cov() * 252
-
-
-    # Create an empty DataFrame to store the results
-    portfolios = pd.DataFrame(columns=[ticker+' weight' for ticker in tickers] + ['Return', 'Risk', 'Sharpe Ratio'], index=range(numPortfolios), dtype=float)
-
-    # Generate random weights and calculate the expected return, volatility and Sharpe ratio
-    for i in range(numPortfolios):
-        weights = 2*np.random.random(nAssets) - 1 if shortSelling else np.random.random(nAssets)
-        weights /= np.sum(weights)
-        portfolios.loc[i, [ticker+' weight' for ticker in tickers]] = weights
-
-        # Calculate the expected return
-        portfolios.loc[i, 'Return'] = np.dot(weights, mean_returns)
-
-        # Calculate the expected volatility
-        portfolios.loc[i, 'Risk'] = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))
-
-    # Calculate the Sharpe ratio
-    portfolios['Sharpe Ratio'] = (portfolios['Return'] - riskFreeRate) / portfolios['Risk']
-
-    return portfolios
     
 def evaluate_portfolio(mc_portfolios, index, data, initialValue):
     portfolio = mc_portfolios.loc[index]
@@ -152,6 +126,7 @@ app.layout = html.Div([
 
                                  html.P('Initial investment', className='dbc'),
                                  dbc.Input(id='initial-investment', value=100, type='number', className='dbc'),
+                                 dbc.Switch(id='show-short', label='Show short positions', value=False, className='dbc'),
                              ])]
                          ),
                          dbc.Col(
@@ -188,7 +163,7 @@ app.layout = html.Div([
                                              id='tab-3',
                                              label='Realized returns',
                                              children=[
-                                                 html.Div('Content tab 3', className='dbc')
+                                                 html.Div('Work in progress', className='dbc')
                                              ]
                                          ),
                                      ]
@@ -234,7 +209,7 @@ def select_assets(tickers, investment_start_date, window, riskFreeRate):
 
     stocks_mv, minVar_portfolio, maxSharpe_portfolio, efficient_frontier = basket.mv_analysis(investment_start_date)
 
-    fig = px.scatter(stocks_mv, x='Risk', y='Return', text=stocks_mv.index).update_traces(marker=dict(size=10))
+    fig = px.scatter(stocks_mv, x='Risk', y='Return', text=stocks_mv.index).update_traces(marker=dict(size=10), name='Assets')
 
     if len(tickers) > 1:
         # Add minimum variance portfolio
@@ -276,12 +251,13 @@ def select_assets(tickers, investment_start_date, window, riskFreeRate):
      Input('analysis-window', 'value'),
      Input('include-risk-free', 'value'),
      Input('short-selling', 'value'),
+     Input('show-short', 'value'),
      Input('run-button', 'n_clicks'),
      ],
     prevent_initial_call=True,
     suppress_callback_exceptions=True
 )
-def mc_allocation(tickers, riskFreeRate, n_portfolios, investment_start_date, window, includeRiskFree, shortSelling, n_clicks):
+def mc_allocation(tickers, riskFreeRate, n_portfolios, investment_start_date, window, includeRiskFree, shortSelling, showShort, n_clicks):
     riskFreeRate = riskFreeRate/100
     if not n_clicks:
         raise PreventUpdate
@@ -314,10 +290,19 @@ def mc_allocation(tickers, riskFreeRate, n_portfolios, investment_start_date, wi
         return fig, mc_portfolios.to_json(), assetInputDisabled, n_clicks
 
     stocks_mv, minVar_portfolio, maxSharpe_portfolio, efficient_frontier = basket.mv_analysis(investment_start_date)
+
+    portfolio = Portfolio(basket, riskFreeRate, includeRiskFree)
+    portfolio.set_investment_start(investment_start_date)
+    mc_portfolios = portfolio.generate(n_portfolios, shortSelling)
+
+    assetList = tickers + ['Risk-free'] if includeRiskFree else tickers
+
+    # Plot the random portfolios
+    color = 'Short positions' if showShort else 'Sharpe Ratio'
+    fig = px.scatter(mc_portfolios, x='Risk', y='Return', color=color, hover_data={**{asset +' weight': ':.2f' for asset in assetList}, **{'Return': ':.2f', 'Risk': ':.2f', 'Sharpe Ratio': ':.2f'}}, opacity=0.5,).update_traces(name='Monte Carlo samples')
     
-    mc_portfolios = generate_portfolios(analysis_returns, n_portfolios, riskFreeRate, shortSelling)
-    fig = px.scatter(mc_portfolios, x='Risk', y='Return', color='Sharpe Ratio', hover_data={**{ticker +' weight': ':.2f' for ticker in tickers}, **{'Return': ':.2f', 'Risk': ':.2f', 'Sharpe Ratio': ':.2f'}}, opacity=0.5,).update_traces(name='minchio')
-    fig.add_scatter(x=stocks_mv['Risk'], y=stocks_mv['Return'], mode='markers', marker=dict(size=7.5,),showlegend=False, name='Tickers', text = [f'<b>{index}</b> <br>Standard deviation: {vol:.2f}<br>Expected return: {ret:.2f}' for index, vol, ret in zip(stocks_mv.index, stocks_mv['Risk'], stocks_mv['Return'])],hoverinfo='text')
+    # Add the stocks
+    fig.add_scatter(x=stocks_mv['Risk'], y=stocks_mv['Return'], mode='markers', marker=dict(size=7.5,),showlegend=False, name='Assets', text = [f'<b>{index}</b> <br>Standard deviation: {vol:.2f}<br>Expected return: {ret:.2f}' for index, vol, ret in zip(stocks_mv.index, stocks_mv['Risk'], stocks_mv['Return'])],hoverinfo='text')
     
     # Add minimum variance portfolio
     fig.add_scatter(x=[minVar_portfolio['risk']], y=[minVar_portfolio['return']], mode='markers',
@@ -368,7 +353,9 @@ def mc_allocation(tickers, riskFreeRate, n_portfolios, investment_start_date, wi
 @app.callback(
     Output('portfolio-value', 'figure'),
     [Input('ticker-dropdown', 'value'),
-    Input('store-data', 'data'),
+    Input('risk-free-rate', 'value'),
+    Input('analysis-window', 'value'),
+    Input('include-risk-free', 'value'),
     Input('store-portfolios', 'data'),
     Input('markowitz-graph', 'clickData'),
     Input('markowitz-graph', 'hoverData'),
@@ -376,19 +363,29 @@ def mc_allocation(tickers, riskFreeRate, n_portfolios, investment_start_date, wi
     Input('initial-investment', 'value'),
     Input('start-date', 'date'),],
 )
-def plot_portfolio(tickers, data, mcPortfolios, clickData, hoverData, figure, initial_investment, investment_start_date):
+def plot_portfolio(tickers, riskFreeRate, window, includeRiskFree, mcPortfolios, clickData, hoverData, figure, initial_investment, investment_start_date):
+    riskFreeRate = riskFreeRate/100
     if not clickData and not hoverData:
         raise PreventUpdate
     
-    data = pd.read_json(StringIO(data)) if len(tickers) > 1 else pd.read_json(StringIO(data), typ='series')
-    outOfSampleData = data[investment_start_date:]
+    investment_start_date = dt.datetime.strptime(investment_start_date, '%Y-%m-%d')
+    # Analyse assets over a window prior to the start date
+    start_date = investment_start_date - dt.timedelta(days=window * 365)
+    # Evaluate the investment over one year after the start date
+    end_date = investment_start_date + dt.timedelta(days=365)
+
+    basket = Basket(tickers, riskFreeRate)
+    basket.get_data(start_date, end_date)
+
+    outOfSampleData = basket.data[investment_start_date:]
     ylims = [((initial_investment/outOfSampleData.iloc[0])*outOfSampleData.min()).min(), ((initial_investment/outOfSampleData.iloc[0])*outOfSampleData.max()).max()]
     fig = go.Figure()
 
     if not mcPortfolios:
         if clickData:
             curveNumber = clickData['points'][0]['curveNumber']
-            if curveNumber != 0:
+            trace_name = figure['data'][curveNumber]['name']
+            if trace_name != 'Assets':
                 raise PreventUpdate
             index = clickData['points'][0]['pointNumber']
             asset_value = evaluate_asset(tickers, index, outOfSampleData, initial_investment)
@@ -396,7 +393,8 @@ def plot_portfolio(tickers, data, mcPortfolios, clickData, hoverData, figure, in
 
         if hoverData:
             curveNumber = hoverData['points'][0]['curveNumber']
-            if curveNumber != 0:
+            trace_name = figure['data'][curveNumber]['name']
+            if trace_name != 'Assets':
                 raise PreventUpdate
             index = hoverData['points'][0]['pointNumber']
             asset_value = evaluate_asset(tickers, index, outOfSampleData, initial_investment)
@@ -406,16 +404,18 @@ def plot_portfolio(tickers, data, mcPortfolios, clickData, hoverData, figure, in
         # else:
         #     raise PreventUpdate
     else:
-        mcPortfolios = pd.read_json(StringIO(mcPortfolios))
+        portfolio = Portfolio(basket, riskFreeRate, includeRiskFree)
+        portfolio.load(mcPortfolios)
+        portfolio.set_investment_start(investment_start_date)
 
         if clickData:
             index = clickData['points'][0]['pointNumber']
             curveNumber = clickData['points'][0]['curveNumber']
             trace_name = figure['data'][curveNumber]['name']
-            if curveNumber == 0:
-                portfolio_value = evaluate_portfolio(mcPortfolios, index, outOfSampleData, initial_investment)
+            if trace_name == 'Monte Carlo samples':
+                portfolio_value = portfolio.evaluate(index, initial_investment)
                 fig = px.line(portfolio_value)
-            if curveNumber == 1:
+            if trace_name == 'Assets':
                 asset_value = evaluate_asset(tickers, index, outOfSampleData, initial_investment)
                 fig = px.line(asset_value).update_traces(line_color='black')
 
@@ -424,7 +424,7 @@ def plot_portfolio(tickers, data, mcPortfolios, clickData, hoverData, figure, in
             index = hoverData['points'][0]['pointNumber']
             curveNumber = hoverData['points'][0]['curveNumber']
             if curveNumber == 0:
-                portfolio_value = evaluate_portfolio(mcPortfolios, index, outOfSampleData, initial_investment)
+                portfolio_value = portfolio.evaluate(index, initial_investment)
                 fig.add_trace(go.Scatter(x=portfolio_value.index, y=portfolio_value, mode='lines', opacity=0.3))
             if curveNumber == 1:
                 asset_value = evaluate_asset(tickers, index, outOfSampleData, initial_investment)

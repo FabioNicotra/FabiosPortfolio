@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import datetime as dt
+from io import StringIO
 
 import plotly.express as px
 import plotly.graph_objects as go
@@ -52,6 +53,23 @@ class Basket:
                     stock.add_data(data[ticker])
         except Exception as e:
             print(f'Error: {e}')
+
+    def calculate_mv(self, investment_start: dt.date):
+        '''
+        Calculate mean returns and covariance matrix for the basket of stocks over the period ending at the investment_start date.
+        '''
+        returns = self.data[:investment_start].pct_change().dropna()
+        mean_returns = returns.mean()*252
+        self.mean_returns = mean_returns
+        if len(self) == 1:
+            cov_matrix = returns.var()*252
+            self.cov_matrix = cov_matrix
+        else:
+            cov_matrix = returns.cov()*252
+            self.cov_matrix = cov_matrix
+
+    def get_mv(self):
+        return self.mean_returns, self.cov_matrix
 
     def mv_analysis(self, investment_start: dt.date):
         '''
@@ -147,4 +165,81 @@ class Basket:
 
         return minVar_line
     
-# class Portfolio:
+class Portfolio:
+    def __init__(self, basket: Basket, riskFreeRate: float, includeRiskFree: bool):
+        self.basket = basket
+        self.riskFreeRate = riskFreeRate
+        self.includeRiskFree = includeRiskFree
+
+    def __repr__(self):
+        substr = 'risk-free asset included' if self.includeRiskFree else ''
+        return f'Portfolio({self.basket}, r = {self.riskFreeRate}, {substr})'
+    
+    def __len__(self):
+        return len(self.basket) + 1 if self.includeRiskFree else len(self.basket)
+    
+    def set_investment_start(self, investment_start: dt.date):
+        self.investment_start = investment_start
+    
+    def get_analysis(self):
+        data = self.basket.data
+        self.basket.calculate_mv(self.investment_start)
+        mean_returns, cov_matrix = self.basket.get_mv()
+        if self.includeRiskFree:
+            mean_returns.loc['Risk-free'] = self.riskFreeRate
+            cov_matrix.loc['Risk-free'] = 0
+            cov_matrix['Risk-free'] = 0
+        return mean_returns, cov_matrix
+    
+
+    def generate(self, numPortfolios: int, shortSelling: bool):
+        mean_returns, cov_matrix = self.get_analysis()
+        tickers = mean_returns.index
+        nAssets = len(tickers)
+
+        # Create an empty DataFrame to store the results
+        mcPortfolios = pd.DataFrame(columns=[ticker+' weight' for ticker in tickers] + ['Return', 'Risk', 'Sharpe Ratio', 'Short positions'], index=range(numPortfolios), dtype=float)
+
+        # Generate random weights and calculate the expected return, volatility and Sharpe ratio
+        for i in range(numPortfolios):
+            weights = 2*np.random.random(nAssets) - 1 if shortSelling else np.random.random(nAssets)
+            weights /= np.sum(weights)
+            mcPortfolios.loc[i, [ticker+' weight' for ticker in tickers]] = weights
+
+            # Calculate the expected return
+            mcPortfolios.loc[i, 'Return'] = np.dot(weights, mean_returns)
+
+            # Calculate the expected volatility
+            mcPortfolios.loc[i, 'Risk'] = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))
+        
+        # Calculate the Sharpe ratio
+        mcPortfolios['Sharpe Ratio'] = (mcPortfolios['Return'] - self.riskFreeRate) / mcPortfolios['Risk']
+        # Set flag for short positions by checking if any weight is negative
+        mcPortfolios['Short positions'] = mcPortfolios[[ticker+' weight' for ticker in tickers]].apply(lambda x: any(x<0), axis=1)
+
+        self.mcPortfolios = mcPortfolios
+
+        return mcPortfolios
+    
+    # Load from json
+    def load(self, data):
+        '''
+        Load the portfolio from a json file
+        '''
+        self.mcPortfolios = pd.read_json(StringIO(data))
+    
+    def evaluate(self, index: int, initialValue: float):
+        '''
+        Evaluate the portfolio
+        '''
+        sample_portfolio = self.mcPortfolios.iloc[index]
+        data = self.basket.data[self.investment_start:]
+        r = self.riskFreeRate
+        assets = self.basket.tickerList
+        nShares = sample_portfolio[[asset+' weight' for asset in assets]].rename({asset+' weight': asset for asset in assets})*initialValue/data.iloc[0]
+        if self.includeRiskFree:
+            cash = sample_portfolio['Risk-free weight']*initialValue*pd.Series((1+r)**(np.arange(len(data))/252), index=data.index)
+            portfolio_value = nShares.dot(data.T) + cash
+        else:
+            portfolio_value = nShares.dot(data.T)
+        return portfolio_value
