@@ -7,6 +7,25 @@
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 */
 
+/* Color list */
+:root {
+    --yinmn-blue: #1d4e89ff;
+    --deep-sky-blue: #00bfffff;
+    --silver: #c0c0c0ff;
+    --charcoal: #36454fff;
+    --cordovan: #9c3848ff;
+
+    --charcoal-t10: #4a5861;
+
+    /* transparent */
+    --charcoal-90: rgb(from var(--charcoal) r g b / 0.9);
+    --charcoal-80: rgb(from var(--charcoal) r g b / 0.8);
+
+    --charcoal-t10-95: rgb(from var(--charcoal-t10) r g b / 0.8);
+
+    --yinmn-blue-80: rgb(from var(--yinmn-blue) r g b / 0.8);
+}
+
 html,
 body,
 div,
@@ -189,11 +208,11 @@ html {
 }
 
 body {
-    background-color: #36454f;
+    background-color: var(--charcoal);
     background-image: linear-gradient(
             to top,
-            rgba(54, 69, 79, 0.9),
-            rgba(54, 69, 79, 0.9)
+            var(--charcoal-90),
+            var(--charcoal-90)
         ),
         url("../../images/bg.jpg");
     background-size: auto, cover;
@@ -2338,7 +2357,7 @@ select {
 
 select option {
     color: #ffffff;
-    background: #36454f;
+    background: var(--charcoal);
 }
 
 select:focus::-ms-value {
@@ -2426,12 +2445,12 @@ input[type="radio"]:checked + label:before {
     background: #ffffff;
     border-color: #ffffff;
     content: "\f00c";
-    color: #36454f;
+    color: var(--charcoal);
 }
 
 input[type="checkbox"]:focus + label:before,
 input[type="radio"]:focus + label:before {
-    border-color: #1d4e89;
+    border-color: var(--yinmn-blue);
 }
 
 input[type="checkbox"] + label:before {
@@ -2855,7 +2874,7 @@ ul.pagination li > .page:hover {
 }
 
 ul.pagination li > .page.active {
-    background-color: #1d4e89;
+    background-color: var(--yinmn-blue);
 }
 
 ul.pagination li:first-child {
@@ -3021,7 +3040,7 @@ input[type="reset"].primary,
 input[type="button"].primary,
 button.primary,
 .button.primary {
-    background-color: #1d4e89;
+    background-color: var(--yinmn-blue);
     box-shadow: none;
 }
 
@@ -3112,7 +3131,7 @@ button:disabled,
 
 .features article {
     padding: 1.75em 1.75em 0.1em 1.75em;
-    background-color: #4a5861;
+    background-color: var(--charcoal-t10);
     border-radius: 5px;
     margin: 1.5em 3em 1.5em 0;
     width: calc(50% - 1.5em);
@@ -3177,7 +3196,7 @@ button:disabled,
     -webkit-transition: background-color 0.2s ease-in-out;
     -ms-transition: background-color 0.2s ease-in-out;
     transition: background-color 0.2s ease-in-out;
-    background-color: hsla(203, 13%, 34%, 0.95);
+    background-color: var(--charcoal-t10-95);
     height: 3.5em;
     left: 0;
     line-height: 3.5em;
@@ -3356,7 +3375,7 @@ button:disabled,
     -ms-user-select: none;
     user-select: none;
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-    background: rgba(46, 49, 65, 0.8);
+    background: var(--charcoal-90);
     cursor: default;
     height: 100%;
     left: 0;
@@ -3379,7 +3398,7 @@ button:disabled,
     -ms-transition: opacity 0.35s ease, -ms-transform 0.35s ease;
     transition: opacity 0.35s ease, transform 0.35s ease;
     -webkit-overflow-scrolling: touch;
-    background: #1d4e89;
+    background: var(--yinmn-blue);
     border-radius: 5px;
     display: block;
     max-width: 100%;
@@ -3676,11 +3695,11 @@ body.is-preload #banner p {
 @media screen and (max-width: 1280px) {
     #wrapper > header {
         padding: 9em 0 6.25em 0;
-        background-color: #36454f;
+        background-color: var(--charcoal);
         background-image: linear-gradient(
                 to top,
-                rgba(46, 49, 65, 0.8),
-                rgba(46, 49, 65, 0.8)
+                var(--charcoal-80),
+                var(--charcoal-80)
             ),
             url("../../images/bg.jpg");
         background-size: auto, cover;
@@ -3719,7 +3738,7 @@ body.is-preload #banner p {
 }
 
 .wrapper {
-    background-color: #36454f;
+    background-color: var(--charcoal);
     margin: 6.5em 0;
     position: relative;
 }
@@ -3730,11 +3749,11 @@ body.is-preload #banner p {
 }
 
 .wrapper:before {
-    box-shadow: inset 0 -1px 0 0 #36454f, 0 1px 0 0 #36454f;
+    box-shadow: inset 0 -1px 0 0 var(--charcoal), 0 1px 0 0 var(--charcoal);
 }
 
 .wrapper:after {
-    box-shadow: inset 0 -1px 0 0 #36454f, 0 1px 0 0 #36454f;
+    box-shadow: inset 0 -1px 0 0 var(--charcoal), 0 1px 0 0 var(--charcoal);
 }
 
 .wrapper:before,
@@ -3868,7 +3887,7 @@ body.is-preload #banner p {
 }
 
 .wrapper.spotlight {
-    background-color: #1d4e89;
+    background-color: var(--yinmn-blue);
 }
 
 .wrapper.spotlight:before,
@@ -3877,11 +3896,11 @@ body.is-preload #banner p {
 }
 
 .wrapper.spotlight:before {
-    box-shadow: inset 0 -1px 0 0 #1d4e89, 0 1px 0 0 #1d4e89;
+    box-shadow: inset 0 -1px 0 0 var(--yinmn-blue), 0 1px 0 0 var(--yinmn-blue);
 }
 
 .wrapper.spotlight:after {
-    box-shadow: inset 0 -1px 0 0 #1d4e89, 0 1px 0 0 #1d4e89;
+    box-shadow: inset 0 -1px 0 0 var(--yinmn-blue), 0 1px 0 0 var(--yinmn-blue);
 }
 
 .wrapper.spotlight .inner {
@@ -4170,11 +4189,11 @@ body.is-preload #banner p {
 
 @media screen and (max-width: 1280px) {
     #footer {
-        background-color: #36454f;
+        background-color: var(--charcoal);
         background-image: linear-gradient(
                 to top,
-                rgba(46, 49, 65, 0.8),
-                rgba(46, 49, 65, 0.8)
+                var(--charcoal-90),
+                var(--charcoal-90)
             ),
             url("../../images/bg.jpg");
         background-size: auto, cover;
