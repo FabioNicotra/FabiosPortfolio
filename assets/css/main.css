@@ -12,16 +12,16 @@
     --yinmn-blue: #1d4e89ff;
     --deep-sky-blue: #00bfffff;
     --silver: #c0c0c0ff;
-    --charcoal: #36454fff;
+    --gunmetal: #212529;
     --cordovan: #9c3848ff;
 
-    --charcoal-t10: #4a5861;
+    --gunmetal-t10: color-mix(in srgb, var(--gunmetal), #fff 10%);
 
     /* transparent */
-    --charcoal-90: rgb(from var(--charcoal) r g b / 0.9);
-    --charcoal-80: rgb(from var(--charcoal) r g b / 0.8);
+    --gunmetal-90: rgb(from var(--gunmetal) r g b / 0.9);
+    --gunmetal-80: rgb(from var(--gunmetal) r g b / 0.8);
 
-    --charcoal-t10-95: rgb(from var(--charcoal-t10) r g b / 0.8);
+    --gunmetal-t10-95: color-mix(in srgb, var(--gunmetal-t10), transparent 5%);
 
     --yinmn-blue-80: rgb(from var(--yinmn-blue) r g b / 0.8);
 }
@@ -208,11 +208,11 @@ html {
 }
 
 body {
-    background-color: var(--charcoal);
+    background-color: var(--gunmetal);
     background-image: linear-gradient(
             to top,
-            var(--charcoal-90),
-            var(--charcoal-90)
+            var(--gunmetal-90),
+            var(--gunmetal-90)
         ),
         url("../../images/bg.jpg");
     background-size: auto, cover;
@@ -2357,7 +2357,7 @@ select {
 
 select option {
     color: #ffffff;
-    background: var(--charcoal);
+    background: var(--gunmetal);
 }
 
 select:focus::-ms-value {
@@ -2445,7 +2445,7 @@ input[type="radio"]:checked + label:before {
     background: #ffffff;
     border-color: #ffffff;
     content: "\f00c";
-    color: var(--charcoal);
+    color: var(--gunmetal);
 }
 
 input[type="checkbox"]:focus + label:before,
@@ -3131,7 +3131,7 @@ button:disabled,
 
 .features article {
     padding: 1.75em 1.75em 0.1em 1.75em;
-    background-color: var(--charcoal-t10);
+    background-color: var(--gunmetal-t10);
     border-radius: 5px;
     margin: 1.5em 3em 1.5em 0;
     width: calc(50% - 1.5em);
@@ -3196,7 +3196,7 @@ button:disabled,
     -webkit-transition: background-color 0.2s ease-in-out;
     -ms-transition: background-color 0.2s ease-in-out;
     transition: background-color 0.2s ease-in-out;
-    background-color: var(--charcoal-t10-95);
+    background-color: var(--gunmetal-t10-95);
     height: 3.5em;
     left: 0;
     line-height: 3.5em;
@@ -3375,7 +3375,7 @@ button:disabled,
     -ms-user-select: none;
     user-select: none;
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-    background: var(--charcoal-90);
+    background: var(--gunmetal-90);
     cursor: default;
     height: 100%;
     left: 0;
@@ -3695,11 +3695,11 @@ body.is-preload #banner p {
 @media screen and (max-width: 1280px) {
     #wrapper > header {
         padding: 9em 0 6.25em 0;
-        background-color: var(--charcoal);
+        background-color: var(--gunmetal);
         background-image: linear-gradient(
                 to top,
-                var(--charcoal-80),
-                var(--charcoal-80)
+                var(--gunmetal-80),
+                var(--gunmetal-80)
             ),
             url("../../images/bg.jpg");
         background-size: auto, cover;
@@ -3738,22 +3738,24 @@ body.is-preload #banner p {
 }
 
 .wrapper {
-    background-color: var(--charcoal);
+    background-color: var(--gunmetal);
     margin: 6.5em 0;
     position: relative;
 }
 
 .wrapper:before,
 .wrapper:after {
-    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpolygon points='0,100 100,0 100,100' style='fill:%2336454F%3B' /%3E%3C/svg%3E");
+    /* change color code in url*/
+    /* gunmetal: 212529 */
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpolygon points='0,100 100,0 100,100' style='fill:%23212529%3B' /%3E%3C/svg%3E");
 }
 
 .wrapper:before {
-    box-shadow: inset 0 -1px 0 0 var(--charcoal), 0 1px 0 0 var(--charcoal);
+    box-shadow: inset 0 -1px 0 0 var(--gunmetal), 0 1px 0 0 var(--gunmetal);
 }
 
 .wrapper:after {
-    box-shadow: inset 0 -1px 0 0 var(--charcoal), 0 1px 0 0 var(--charcoal);
+    box-shadow: inset 0 -1px 0 0 var(--gunmetal), 0 1px 0 0 var(--gunmetal);
 }
 
 .wrapper:before,
@@ -4189,11 +4191,11 @@ body.is-preload #banner p {
 
 @media screen and (max-width: 1280px) {
     #footer {
-        background-color: var(--charcoal);
+        background-color: var(--gunmetal);
         background-image: linear-gradient(
                 to top,
-                var(--charcoal-90),
-                var(--charcoal-90)
+                var(--gunmetal-90),
+                var(--gunmetal-90)
             ),
             url("../../images/bg.jpg");
         background-size: auto, cover;
